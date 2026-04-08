@@ -1,712 +1,131 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Warehouse Orders</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #f0f2f5;
-      color: #1a1a2e;
-      min-height: 100vh;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manus Sandbox</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+      }
 
-    header {
-      background: #1a1a2e;
-      color: white;
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
+      h2,
+      p {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
 
-    header h1 { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+  <body>
+    <div style="
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      ">
+     <svg width="161" height="160" viewBox="0 0 161 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <mask id="mask0_6488_4129" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="161" height="160">
+      <path d="M0.898438 0H160.898V160H0.898438V0Z" fill="url(#paint0_linear_6488_4129)"/>
+      </mask>
+      <g mask="url(#mask0_6488_4129)">
+      <path d="M58.8984 116H102.898V146H58.8984V116Z" fill="#C5C6C6"/>
+      <rect x="54.8984" y="146" width="52" height="4" fill="#666769"/>
+      <rect x="1.29844" y="10.4" width="159.2" height="105.2" rx="7.6" fill="#E5E5E5" stroke="#F4F4F4" stroke-width="0.8" stroke-dasharray="1 1"/>
+      <path d="M4.89844 20C4.89844 16.6863 7.58473 14 10.8984 14H150.898C154.212 14 156.898 16.6863 156.898 20V106C156.898 109.314 154.212 112 150.898 112H10.8984C7.58473 112 4.89844 109.314 4.89844 106V20Z" fill="#D0D0D2"/>
+      <path d="M150.398 16V16.2998H150.898C151.062 16.2998 151.224 16.3104 151.382 16.3311L151.42 16.0342C151.773 16.0801 152.111 16.172 152.429 16.3037L152.314 16.5811C152.615 16.7057 152.896 16.8688 153.15 17.0645L153.333 16.8271C153.61 17.0398 153.858 17.2878 154.07 17.5645L153.834 17.748C154.03 18.0027 154.193 18.2834 154.317 18.584L154.594 18.4688C154.726 18.7865 154.817 19.1247 154.863 19.4775L154.567 19.5166C154.588 19.6747 154.599 19.836 154.599 20V20.5H154.898V21.5H154.599V22.5H154.898V23.5H154.599V24.5H154.898V25.5H154.599V26.5H154.898V27.5H154.599V28.5H154.898V29.5H154.599V30.5H154.898V31.5H154.599V32.5H154.898V33.5H154.599V34.5H154.898V35.5H154.599V36.5H154.898V37.5H154.599V38.5H154.898V39.5H154.599V40.5H154.898V41.5H154.599V42.5H154.898V43.5H154.599V44.5H154.898V45.5H154.599V46.5H154.898V47.5H154.599V48.5H154.898V49.5H154.599V50.5H154.898V51.5H154.599V52.5H154.898V53.5H154.599V54.5H154.898V55.5H154.599V56.5H154.898V57.5H154.599V58.5H154.898V59.5H154.599V60.5H154.898V61.5H154.599V62.5H154.898V63.5H154.599V64.5H154.898V65.5H154.599V66.5H154.898V67.5H154.599V68.5H154.898V69.5H154.599V70.5H154.898V71.5H154.599V72.5H154.898V73.5H154.599V74.5H154.898V75.5H154.599V76.5H154.898V77.5H154.599V78.5H154.898V79.5H154.599V80.5H154.898V81.5H154.599V82.5H154.898V83.5H154.599V84.5H154.898V85.5H154.599V86.5H154.898V87.5H154.599V88.5H154.898V89.5H154.599V90.5H154.898V91.5H154.599V92.5H154.898V93.5H154.599V94.5H154.898V95.5H154.599V96.5H154.898V97.5H154.599V98.5H154.898V99.5H154.599V100.5H154.898V101.5H154.599V102.5H154.898V103.5H154.599V104.5H154.898V105.5H154.599V106C154.599 106.164 154.588 106.325 154.567 106.483L154.863 106.521C154.817 106.874 154.725 107.212 154.594 107.53L154.317 107.416C154.193 107.717 154.03 107.997 153.834 108.252L154.07 108.435C153.858 108.711 153.61 108.959 153.333 109.172L153.15 108.936C152.896 109.131 152.615 109.294 152.314 109.419L152.429 109.695C152.111 109.827 151.773 109.919 151.42 109.965L151.382 109.669C151.224 109.69 151.062 109.7 150.898 109.7H150.398V110H149.398V109.7H148.398V110H147.398V109.7H146.398V110H145.398V109.7H144.398V110H143.398V109.7H142.398V110H141.398V109.7H140.398V110H139.398V109.7H138.398V110H137.398V109.7H136.398V110H135.398V109.7H134.398V110H133.398V109.7H132.398V110H131.398V109.7H130.398V110H129.398V109.7H128.398V110H127.398V109.7H126.398V110H125.398V109.7H124.398V110H123.398V109.7H122.398V110H121.398V109.7H120.398V110H119.398V109.7H118.398V110H117.398V109.7H116.398V110H115.398V109.7H114.398V110H113.398V109.7H112.398V110H111.398V109.7H110.398V110H109.398V109.7H108.398V110H107.398V109.7H106.398V110H105.398V109.7H104.398V110H103.398V109.7H102.398V110H101.398V109.7H100.398V110H99.3984V109.7H98.3984V110H97.3984V109.7H96.3984V110H95.3984V109.7H94.3984V110H93.3984V109.7H92.3984V110H91.3984V109.7H90.3984V110H89.3984V109.7H88.3984V110H87.3984V109.7H86.3984V110H85.3984V109.7H84.3984V110H83.3984V109.7H82.3984V110H81.3984V109.7H80.3984V110H79.3984V109.7H78.3984V110H77.3984V109.7H76.3984V110H75.3984V109.7H74.3984V110H73.3984V109.7H72.3984V110H71.3984V109.7H70.3984V110H69.3984V109.7H68.3984V110H67.3984V109.7H66.3984V110H65.3984V109.7H64.3984V110H63.3984V109.7H62.3984V110H61.3984V109.7H60.3984V110H59.3984V109.7H58.3984V110H57.3984V109.7H56.3984V110H55.3984V109.7H54.3984V110H53.3984V109.7H52.3984V110H51.3984V109.7H50.3984V110H49.3984V109.7H48.3984V110H47.3984V109.7H46.3984V110H45.3984V109.7H44.3984V110H43.3984V109.7H42.3984V110H41.3984V109.7H40.3984V110H39.3984V109.7H38.3984V110H37.3984V109.7H36.3984V110H35.3984V109.7H34.3984V110H33.3984V109.7H32.3984V110H31.3984V109.7H30.3984V110H29.3984V109.7H28.3984V110H27.3984V109.7H26.3984V110H25.3984V109.7H24.3984V110H23.3984V109.7H22.3984V110H21.3984V109.7H20.3984V110H19.3984V109.7H18.3984V110H17.3984V109.7H16.3984V110H15.3984V109.7H14.3984V110H13.3984V109.7H12.3984V110H11.3984V109.7H10.8984C10.7345 109.7 10.5731 109.69 10.415 109.669L10.376 109.965C10.0231 109.919 9.68493 109.827 9.36719 109.695L9.48242 109.419C9.18185 109.294 8.90114 109.131 8.64648 108.936L8.46289 109.172C8.18623 108.959 7.93825 108.711 7.72559 108.435L7.96289 108.252C7.76722 107.997 7.60414 107.717 7.47949 107.416L7.20215 107.53C7.07046 107.213 6.97856 106.874 6.93262 106.521L7.22949 106.483C7.20888 106.325 7.19824 106.164 7.19824 106V105.5H6.89844V104.5H7.19824V103.5H6.89844V102.5H7.19824V101.5H6.89844V100.5H7.19824V99.5H6.89844V98.5H7.19824V97.5H6.89844V96.5H7.19824V95.5H6.89844V94.5H7.19824V93.5H6.89844V92.5H7.19824V91.5H6.89844V90.5H7.19824V89.5H6.89844V88.5H7.19824V87.5H6.89844V86.5H7.19824V85.5H6.89844V84.5H7.19824V83.5H6.89844V82.5H7.19824V81.5H6.89844V80.5H7.19824V79.5H6.89844V78.5H7.19824V77.5H6.89844V76.5H7.19824V75.5H6.89844V74.5H7.19824V73.5H6.89844V72.5H7.19824V71.5H6.89844V70.5H7.19824V69.5H6.89844V68.5H7.19824V67.5H6.89844V66.5H7.19824V65.5H6.89844V64.5H7.19824V63.5H6.89844V62.5H7.19824V61.5H6.89844V60.5H7.19824V59.5H6.89844V58.5H7.19824V57.5H6.89844V56.5H7.19824V55.5H6.89844V54.5H7.19824V53.5H6.89844V52.5H7.19824V51.5H6.89844V50.5H7.19824V49.5H6.89844V48.5H7.19824V47.5H6.89844V46.5H7.19824V45.5H6.89844V44.5H7.19824V43.5H6.89844V42.5H7.19824V41.5H6.89844V40.5H7.19824V39.5H6.89844V38.5H7.19824V37.5H6.89844V36.5H7.19824V35.5H6.89844V34.5H7.19824V33.5H6.89844V32.5H7.19824V31.5H6.89844V30.5H7.19824V29.5H6.89844V28.5H7.19824V27.5H6.89844V26.5H7.19824V25.5H6.89844V24.5H7.19824V23.5H6.89844V22.5H7.19824V21.5H6.89844V20.5H7.19824V20C7.19824 19.836 7.20888 19.6747 7.22949 19.5166L6.93262 19.4775C6.97864 19.1248 7.0704 18.7864 7.20215 18.4688L7.47949 18.584C7.60414 18.2834 7.76722 18.0027 7.96289 17.748L7.72559 17.5645C7.93826 17.2878 8.18624 17.0398 8.46289 16.8271L8.64648 17.0645C8.90114 16.8688 9.18185 16.7057 9.48242 16.5811L9.36719 16.3037C9.68487 16.172 10.0232 16.0802 10.376 16.0342L10.415 16.3311C10.5731 16.3104 10.7345 16.2998 10.8984 16.2998H11.3984V16H12.3984V16.2998H13.3984V16H14.3984V16.2998H15.3984V16H16.3984V16.2998H17.3984V16H18.3984V16.2998H19.3984V16H20.3984V16.2998H21.3984V16H22.3984V16.2998H23.3984V16H24.3984V16.2998H25.3984V16H26.3984V16.2998H27.3984V16H28.3984V16.2998H29.3984V16H30.3984V16.2998H31.3984V16H32.3984V16.2998H33.3984V16H34.3984V16.2998H35.3984V16H36.3984V16.2998H37.3984V16H38.3984V16.2998H39.3984V16H40.3984V16.2998H41.3984V16H42.3984V16.2998H43.3984V16H44.3984V16.2998H45.3984V16H46.3984V16.2998H47.3984V16H48.3984V16.2998H49.3984V16H50.3984V16.2998H51.3984V16H52.3984V16.2998H53.3984V16H54.3984V16.2998H55.3984V16H56.3984V16.2998H57.3984V16H58.3984V16.2998H59.3984V16H60.3984V16.2998H61.3984V16H62.3984V16.2998H63.3984V16H64.3984V16.2998H65.3984V16H66.3984V16.2998H67.3984V16H68.3984V16.2998H69.3984V16H70.3984V16.2998H71.3984V16H72.3984V16.2998H73.3984V16H74.3984V16.2998H75.3984V16H76.3984V16.2998H77.3984V16H78.3984V16.2998H79.3984V16H80.3984V16.2998H81.3984V16H82.3984V16.2998H83.3984V16H84.3984V16.2998H85.3984V16H86.3984V16.2998H87.3984V16H88.3984V16.2998H89.3984V16H90.3984V16.2998H91.3984V16H92.3984V16.2998H93.3984V16H94.3984V16.2998H95.3984V16H96.3984V16.2998H97.3984V16H98.3984V16.2998H99.3984V16H100.398V16.2998H101.398V16H102.398V16.2998H103.398V16H104.398V16.2998H105.398V16H106.398V16.2998H107.398V16H108.398V16.2998H109.398V16H110.398V16.2998H111.398V16H112.398V16.2998H113.398V16H114.398V16.2998H115.398V16H116.398V16.2998H117.398V16H118.398V16.2998H119.398V16H120.398V16.2998H121.398V16H122.398V16.2998H123.398V16H124.398V16.2998H125.398V16H126.398V16.2998H127.398V16H128.398V16.2998H129.398V16H130.398V16.2998H131.398V16H132.398V16.2998H133.398V16H134.398V16.2998H135.398V16H136.398V16.2998H137.398V16H138.398V16.2998H139.398V16H140.398V16.2998H141.398V16H142.398V16.2998H143.398V16H144.398V16.2998H145.398V16H146.398V16.2998H147.398V16H148.398V16.2998H149.398V16H150.398Z" fill="#E4E4E4" stroke="white" stroke-width="0.6" stroke-dasharray="1 1"/>
+      <path d="M6.89844 16H151.949L6.89844 110V16Z" fill="white" fill-opacity="0.24"/>
+      </g>
+      <defs>
+      <linearGradient id="paint0_linear_6488_4129" x1="80.8984" y1="35" x2="80.8984" y2="160" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4A4B4E"/>
+      <stop offset="1" stop-color="#ABADB4" stop-opacity="0"/>
+      </linearGradient>
+      </defs>
+      </svg>
 
-    .badge {
-      background: #e63946;
-      color: white;
-      border-radius: 12px;
-      padding: 3px 10px;
-      font-size: 13px;
-      font-weight: 600;
-    }
+      <div style="
+          margin-top: 24px;
+          max-width: 100%;
+          width: 540px;
+          padding: 0 16px;
+          box-sizing: border-box;
+        ">
+        <h2 style="
+            margin-bottom: 8px;
+            color: #34322d;
+            text-align: center;
+            font-family: 'SF Pro';
+            font-size: 18px;
+            font-style: normal;
+            font-weight: 600;
+            line-height: 24px;
+          ">
+          The temporary website is currently unavailable
+        </h2>
+        <p style="
+            color: var(--text-tertiary, #858481);
+            text-align: center;
+            font-family: var(--Sans, 'SF Pro');
+            font-size: 14px;
+            font-style: normal;
+            font-weight: var(--Weight-Medium, 500);
+            line-height: 20px; /* 142.857% */
+            letter-spacing: -0.154px;
+          ">
+          This may be because Manus's computer is asleep or the link has
+          expired. Please return to the task to try waking it up, or generate a
+          new link.
+        </p>
 
-    .print-history-badge {
-      background: #7c3aed;
-      color: white;
-      border-radius: 10px;
-      padding: 2px 8px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      white-space: nowrap;
-    }
+        <div style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 16px;
+            ">
+          <button
+            type="button"
+            style="
+            display: flex;
+            height: 32px;
+            min-height: 32px;
+            min-width: 64px;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            white-space: nowrap;
+            border-radius: 8px;
+            background-color: var(--Button-primary-black,#1a1a19);
+            padding-left: 8px;
+            padding-right: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 18px;
+            color: var(--text-onblack,#fff);
+            border:none;
+            cursor: pointer;
+            "
+            onclick="wakeUp()">Wake up</button>
+        </div>
 
-    .refresh-btn {
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 16px;
-      font-size: 14px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background 0.2s;
-    }
-    .refresh-btn:hover { background: #1d4ed8; }
-    .refresh-btn:disabled { background: #6b7280; cursor: not-allowed; }
-
-    /* ── Bulk action bar ── */
-    .bulk-bar {
-      position: sticky;
-      top: 57px;
-      z-index: 99;
-      background: #1e3a5f;
-      color: white;
-      padding: 10px 20px;
-      display: none;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    .bulk-bar.visible { display: flex; }
-    .bulk-bar span { font-size: 14px; font-weight: 600; flex: 1; }
-
-    .bulk-btn {
-      border: none;
-      border-radius: 7px;
-      padding: 8px 14px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .bulk-btn-label   { background: #e2e8f0; color: #1a1a2e; }
-    .bulk-btn-invoice { background: #2563eb; color: white; }
-    .bulk-btn-packing { background: #059669; color: white; }
-    .bulk-btn-all     { background: #e63946; color: white; }
-    .bulk-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    /* ── Select all row ── */
-    .select-all-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 4px 4px;
-      font-size: 13px;
-      color: #6b7280;
-      font-weight: 600;
-      cursor: pointer;
-      user-select: none;
-    }
-    .select-all-row input[type=checkbox] { width: 17px; height: 17px; cursor: pointer; accent-color: #2563eb; }
-
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 20px 16px;
-    }
-
-    .loading {
-      text-align: center;
-      padding: 60px 20px;
-      color: #6b7280;
-      font-size: 16px;
-    }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #e5e7eb;
-      border-top-color: #2563eb;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .empty {
-      text-align: center;
-      padding: 60px 20px;
-      color: #6b7280;
-    }
-    .empty .icon { font-size: 48px; margin-bottom: 12px; }
-    .empty p { font-size: 16px; }
-
-    .order-card {
-      background: white;
-      border-radius: 12px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      overflow: hidden;
-      transition: box-shadow 0.2s, outline 0.15s;
-    }
-    .order-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
-    .order-card.selected { outline: 2px solid #2563eb; }
-
-    .order-header {
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid #f3f4f6;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .order-header-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    /* checkbox in header */
-    .order-check {
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
-      accent-color: #2563eb;
-      flex-shrink: 0;
-    }
-
-    .order-number { font-size: 18px; font-weight: 700; color: #1a1a2e; }
-
-    .order-status {
-      background: #fef3c7;
-      color: #92400e;
-      border-radius: 6px;
-      padding: 3px 10px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-
-    .order-date { font-size: 13px; color: #9ca3af; }
-
-    .chevron { font-size: 18px; color: #9ca3af; transition: transform 0.2s; }
-    .order-card.open .chevron { transform: rotate(180deg); }
-
-    .order-body { display: none; padding: 16px 20px; }
-    .order-card.open .order-body { display: block; }
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } }
-
-    .info-item label {
-      font-size: 11px;
-      font-weight: 600;
-      color: #9ca3af;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      display: block;
-      margin-bottom: 4px;
-    }
-    .info-item span { font-size: 14px; color: #1a1a2e; font-weight: 500; }
-
-    .items-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 16px;
-      font-size: 14px;
-    }
-    .items-table th {
-      text-align: left;
-      padding: 8px 10px;
-      background: #f9fafb;
-      color: #6b7280;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    .items-table td {
-      padding: 10px 10px;
-      border-bottom: 1px solid #f3f4f6;
-      color: #374151;
-    }
-    .items-table tr:last-child td { border-bottom: none; }
-
-    .action-buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-      gap: 8px;
-      margin-top: 16px;
-    }
-    @media (max-width: 650px) { .action-buttons { grid-template-columns: 1fr 1fr; } }
-
-    .btn {
-      border: none;
-      border-radius: 8px;
-      padding: 12px 8px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      line-height: 1.2;
-    }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .btn-label   { background: #1a1a2e; color: white; }
-    .btn-label:hover:not(:disabled)   { background: #2d2d4e; }
-
-    .btn-invoice { background: #2563eb; color: white; }
-    .btn-invoice:hover:not(:disabled) { background: #1d4ed8; }
-
-    .btn-packing { background: #059669; color: white; }
-    .btn-packing:hover:not(:disabled) { background: #047857; }
-
-    .btn-printall { background: #e63946; color: white; }
-    .btn-printall:hover:not(:disabled) { background: #c81d2a; }
-
-    .btn-archive { background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }
-    .btn-archive:hover:not(:disabled) { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
-
-    .btn-icon { font-size: 20px; }
-
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: #1a1a2e;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      z-index: 9999;
-      transition: transform 0.3s ease;
-      max-width: 90vw;
-      text-align: center;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-    .toast.show { transform: translateX(-50%) translateY(0); }
-    .toast.success { background: #059669; }
-    .toast.error   { background: #dc2626; }
-    .toast.info    { background: #2563eb; }
-
-    .total-row {
-      display: flex;
-      justify-content: flex-end;
-      font-weight: 700;
-      font-size: 15px;
-      color: #1a1a2e;
-      padding: 8px 10px 0;
-    }
-  </style>
-</head>
-<body>
-
-<header>
-  <div style="display:flex;align-items:center;gap:12px;">
-    <h1>📦 Warehouse Orders</h1>
-    <span class="badge" id="order-count">0</span>
-  </div>
-  <button class="refresh-btn" id="refresh-btn" onclick="loadOrders()">↻ Refresh</button>
-</header>
-
-<!-- Bulk action bar (appears when orders are selected) -->
-<div class="bulk-bar" id="bulk-bar">
-  <span id="bulk-label">0 orders selected</span>
-  <button class="bulk-btn bulk-btn-label"   onclick="bulkPrint('label')"   id="bulk-btn-label">🏷️ Print Labels</button>
-  <button class="bulk-btn bulk-btn-invoice" onclick="bulkPrint('invoice')" id="bulk-btn-invoice">🖨️ Print Invoices</button>
-  <button class="bulk-btn bulk-btn-packing" onclick="bulkPrint('packing')" id="bulk-btn-packing">📋 Print Slips</button>
-  <button class="bulk-btn bulk-btn-all"     onclick="bulkPrint('all')"     id="bulk-btn-all">⚡ Print All</button>
-</div>
-
-<div class="container">
-  <div id="orders-container">
-    <div class="loading">
-      <div class="spinner"></div>
-      <p>Loading orders...</p>
+      </div>
     </div>
-  </div>
-</div>
+  </body>
 
-<div class="toast" id="toast"></div>
-
-<script>
-  let ordersData = [];
-  let selectedIndexes = new Set();
-  let printHistory = {};
-
-  // ── Load orders ──────────────────────────────────────────────────────────────
-  async function loadOrders() {
-    const btn = document.getElementById('refresh-btn');
-    btn.disabled = true;
-    btn.textContent = '↻ Loading...';
-    selectedIndexes.clear();
-    updateBulkBar();
-
-    document.getElementById('orders-container').innerHTML = `
-      <div class="loading"><div class="spinner"></div><p>Loading orders...</p></div>`;
-
-    try {
-      const [ordersRes, historyRes] = await Promise.all([
-        fetch('/api/orders'),
-        fetch('/api/print-history'),
-      ]);
-      const data = await ordersRes.json();
-      const histData = await historyRes.json();
-      if (!data.success) throw new Error(data.error);
-      ordersData = data.orders;
-      printHistory = histData.history || {};
-      document.getElementById('order-count').textContent = ordersData.length;
-      renderOrders(ordersData);
-    } catch (err) {
-      document.getElementById('orders-container').innerHTML = `
-        <div class="empty"><div class="icon">⚠️</div><p>Failed to load: ${err.message}</p></div>`;
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '↻ Refresh';
+  <script>
+    function wakeUp() {
+      const host = 'https://manus.im'
+      window.location.href = `${host}/sandbox/wakeup?url=${encodeURIComponent(window.location.href)}`
     }
-  }
+  </script>
 
-  // ── Render orders ─────────────────────────────────────────────────────────────
-  function renderOrders(orders) {
-    const container = document.getElementById('orders-container');
-
-    if (orders.length === 0) {
-      container.innerHTML = `
-        <div class="empty"><div class="icon">✅</div><p>No unfulfilled orders. All caught up!</p></div>`;
-      return;
-    }
-
-    const selectAllRow = `
-      <div class="select-all-row" onclick="toggleSelectAll()">
-        <input type="checkbox" id="select-all-cb" onclick="event.stopPropagation(); toggleSelectAll()" />
-        <span>Select All</span>
-      </div>`;
-
-    const cards = orders.map((order, idx) => {
-      const date = new Date(order.createdAt).toLocaleDateString('en-GB', {
-        day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-      });
-
-      const itemsRows = order.items.map(item => `
-        <tr>
-          <td>${item.title}${item.variant ? ' — ' + item.variant : ''}</td>
-          <td>${item.sku || '—'}</td>
-          <td style="text-align:center;font-weight:700;">${item.quantity}</td>
-        </tr>
-      `).join('');
-
-      // Print history badge
-      const hist = printHistory[order.name];
-      const totalPrints = hist ? (hist.label || 0) + (hist.invoice || 0) + (hist.packing || 0) : 0;
-      const printBadge = totalPrints > 0
-        ? `<span class="print-history-badge" title="Label:${hist.label||0} Invoice:${hist.invoice||0} Slip:${hist.packing||0}">🖨️ ${totalPrints}x</span>`
-        : '';
-
-      return `
-        <div class="order-card" id="card-${idx}">
-          <div class="order-header" onclick="toggleCard(${idx})">
-            <div class="order-header-left">
-              <input type="checkbox" class="order-check" id="check-${idx}"
-                onclick="event.stopPropagation(); toggleSelect(${idx})" />
-              <span class="order-number">${order.name}</span>
-              <span class="order-status">${order.status}</span>
-              ${printBadge}
-            </div>
-            <div style="display:flex;align-items:center;gap:12px;">
-              <span class="order-date">${date}</span>
-              <span class="chevron">▼</span>
-            </div>
-          </div>
-          <div class="order-body">
-            <div class="info-grid">
-              <div class="info-item">
-                <label>Customer</label>
-                <span>${order.customerName || '—'}</span>
-              </div>
-              <div class="info-item">
-                <label>Phone</label>
-                <span>${order.phone || '—'}</span>
-              </div>
-              <div class="info-item" style="grid-column:1/-1;">
-                <label>Shipping Address</label>
-                <span>${order.address || '—'}</span>
-              </div>
-            </div>
-
-            <table class="items-table">
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th>SKU</th>
-                  <th style="text-align:center;">Qty</th>
-                </tr>
-              </thead>
-              <tbody>${itemsRows}</tbody>
-            </table>
-            <div class="total-row">Total: ${order.total}</div>
-
-            <div class="action-buttons">
-              <button class="btn btn-label"    onclick="printLabel(${idx})"       id="btn-label-${idx}">
-                <span class="btn-icon">🏷️</span>Print Label
-              </button>
-              <button class="btn btn-invoice"  onclick="printInvoice(${idx})"     id="btn-invoice-${idx}">
-                <span class="btn-icon">🖨️</span>Print Invoice
-              </button>
-              <button class="btn btn-packing"  onclick="printPackingSlip(${idx})" id="btn-packing-${idx}">
-                <span class="btn-icon">📋</span>Packing Slip
-              </button>
-              <button class="btn btn-printall" onclick="printAll(${idx})"         id="btn-printall-${idx}">
-                <span class="btn-icon">⚡</span>Print All
-              </button>
-              <button class="btn btn-archive"  onclick="archiveOrder(${idx})"     id="btn-archive-${idx}">
-                <span class="btn-icon">📁</span>Archive
-              </button>
-            </div>
-          </div>
-        </div>`;
-    }).join('');
-
-    container.innerHTML = selectAllRow + cards;
-  }
-
-  // ── Toggle card open/close ────────────────────────────────────────────────────
-  function toggleCard(idx) {
-    document.getElementById(`card-${idx}`).classList.toggle('open');
-  }
-
-  // ── Selection logic ───────────────────────────────────────────────────────────
-  function toggleSelect(idx) {
-    if (selectedIndexes.has(idx)) {
-      selectedIndexes.delete(idx);
-      document.getElementById(`card-${idx}`).classList.remove('selected');
-    } else {
-      selectedIndexes.add(idx);
-      document.getElementById(`card-${idx}`).classList.add('selected');
-    }
-    updateBulkBar();
-    updateSelectAllCheckbox();
-  }
-
-  function toggleSelectAll() {
-    const allSelected = selectedIndexes.size === ordersData.length;
-    selectedIndexes.clear();
-    ordersData.forEach((_, idx) => {
-      const cb = document.getElementById(`check-${idx}`);
-      const card = document.getElementById(`card-${idx}`);
-      if (!allSelected) {
-        selectedIndexes.add(idx);
-        if (cb) cb.checked = true;
-        if (card) card.classList.add('selected');
-      } else {
-        if (cb) cb.checked = false;
-        if (card) card.classList.remove('selected');
-      }
-    });
-    const saCb = document.getElementById('select-all-cb');
-    if (saCb) saCb.checked = !allSelected;
-    updateBulkBar();
-  }
-
-  function updateSelectAllCheckbox() {
-    const saCb = document.getElementById('select-all-cb');
-    if (!saCb) return;
-    saCb.checked = selectedIndexes.size === ordersData.length && ordersData.length > 0;
-    saCb.indeterminate = selectedIndexes.size > 0 && selectedIndexes.size < ordersData.length;
-  }
-
-  function updateBulkBar() {
-    const bar = document.getElementById('bulk-bar');
-    const label = document.getElementById('bulk-label');
-    const n = selectedIndexes.size;
-    if (n > 0) {
-      bar.classList.add('visible');
-      label.textContent = `${n} order${n > 1 ? 's' : ''} selected`;
-    } else {
-      bar.classList.remove('visible');
-    }
-  }
-
-  // ── Print All for a single order ──────────────────────────────────────────────
-  async function printAll(idx) {
-    const btn = document.getElementById(`btn-printall-${idx}`);
-    const originalHTML = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="btn-icon">⏳</span>Printing...';
-    showToast('⚡ Printing label, invoice & packing slip...', 'info');
-    try {
-      await Promise.all([
-        doPrintLabel(idx),
-        doPrintInvoice(idx),
-        doPrintPackingSlip(idx),
-      ]);
-      showToast('✅ All 3 printed for ' + ordersData[idx].name + '!', 'success');
-    } catch (err) {
-      showToast('❌ ' + err.message, 'error');
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = originalHTML;
-    }
-  }
-
-  // ── Bulk print ────────────────────────────────────────────────────────────────
-  async function bulkPrint(type) {
-    const indexes = [...selectedIndexes].sort((a, b) => a - b);
-    if (indexes.length === 0) return;
-
-    const btns = ['bulk-btn-label','bulk-btn-invoice','bulk-btn-packing','bulk-btn-all'];
-    btns.forEach(id => { const b = document.getElementById(id); if(b) b.disabled = true; });
-
-    showToast(`⏳ Printing ${type === 'all' ? 'everything' : type} for ${indexes.length} orders...`, 'info');
-
-    let done = 0;
-    for (const idx of indexes) {
-      try {
-        if (type === 'label')   await doPrintLabel(idx);
-        if (type === 'invoice') await doPrintInvoice(idx);
-        if (type === 'packing') await doPrintPackingSlip(idx);
-        if (type === 'all') {
-          try { await doPrintLabel(idx); } catch(e) { showToast(`⚠️ ${ordersData[idx].name} label: ${e.message}`, 'error'); await new Promise(r=>setTimeout(r,1000)); }
-          try { await doPrintInvoice(idx); } catch(e) { showToast(`⚠️ ${ordersData[idx].name} invoice: ${e.message}`, 'error'); await new Promise(r=>setTimeout(r,1000)); }
-          try { await doPrintPackingSlip(idx); } catch(e) { showToast(`⚠️ ${ordersData[idx].name} slip: ${e.message}`, 'error'); await new Promise(r=>setTimeout(r,1000)); }
-        }
-        done++;
-        showToast(`⏳ ${done}/${indexes.length} done...`, 'info');
-      } catch (err) {
-        showToast(`❌ ${ordersData[idx].name}: ${err.message}`, 'error');
-        await new Promise(r => setTimeout(r, 1500));
-      }
-    }
-
-    btns.forEach(id => { const b = document.getElementById(id); if(b) b.disabled = false; });
-    showToast(`✅ Done! Printed ${done}/${indexes.length} orders.`, 'success');
-  }
-
-  // ── Core print helpers (no UI state) ─────────────────────────────────────────
-  async function doPrintLabel(idx) {
-    const order = ordersData[idx];
-    const res = await fetch('/api/print/label', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderName: order.name, customerName: order.customerName, address: order.address, addressLine1: order.addressLine1, addressLine2: order.addressLine2, addressCity: order.addressCity, phone: order.phone }),
-    });
-    const data = await res.json();
-    if (!data.success) throw new Error(data.error);
-  }
-
-  async function doPrintInvoice(idx) {
-    const order = ordersData[idx];
-    const res = await fetch('/api/print/invoice', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderName: order.name }),
-    });
-    const data = await res.json();
-    if (!data.success) throw new Error(data.error);
-  }
-
-  async function doPrintPackingSlip(idx) {
-    const order = ordersData[idx];
-    const res = await fetch('/api/print/packing-slip', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        shopifyId: order.shopifyId, orderName: order.name, customerName: order.customerName,
-        address: order.address, phone: order.phone, items: order.items, total: order.total,
-      }),
-    });
-    const data = await res.json();
-    if (!data.success) throw new Error(data.error);
-  }
-
-  // ── Individual print buttons ──────────────────────────────────────────────────
-  async function printLabel(idx) {
-    const btn = document.getElementById(`btn-label-${idx}`);
-    await doAction(btn, async () => {
-      await doPrintLabel(idx);
-      showToast('✅ Label sent to Zebra printer!', 'success');
-    });
-  }
-
-  async function printInvoice(idx) {
-    const btn = document.getElementById(`btn-invoice-${idx}`);
-    await doAction(btn, async () => {
-      await doPrintInvoice(idx);
-      showToast('✅ Invoice sent to HP printer!', 'success');
-    });
-  }
-
-  async function printPackingSlip(idx) {
-    const btn = document.getElementById(`btn-packing-${idx}`);
-    await doAction(btn, async () => {
-      await doPrintPackingSlip(idx);
-      showToast('✅ Packing slip sent to HP printer!', 'success');
-    });
-  }
-
-  async function archiveOrder(idx) {
-    const order = ordersData[idx];
-    if (!confirm(`Archive order ${order.name}? This will close it in Shopify.`)) return;
-    const btn = document.getElementById(`btn-archive-${idx}`);
-    await doAction(btn, async () => {
-      const res = await fetch('/api/orders/archive', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ shopifyId: order.shopifyId }),
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error);
-      showToast(`📁 Order ${order.name} archived!`, 'success');
-      selectedIndexes.delete(idx);
-      updateBulkBar();
-      const card = document.getElementById(`card-${idx}`);
-      card.style.opacity = '0';
-      card.style.transition = 'opacity 0.4s';
-      setTimeout(() => {
-        ordersData.splice(idx, 1);
-        document.getElementById('order-count').textContent = ordersData.length;
-        renderOrders(ordersData);
-      }, 400);
-    });
-  }
-
-  // ── Generic action wrapper ────────────────────────────────────────────────────
-  async function doAction(btn, fn) {
-    const originalHTML = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="btn-icon">⏳</span>Sending...';
-    try { await fn(); }
-    catch (err) { showToast('❌ ' + err.message, 'error'); }
-    finally { btn.disabled = false; btn.innerHTML = originalHTML; }
-  }
-
-  // ── Toast ─────────────────────────────────────────────────────────────────────
-  function showToast(msg, type = '') {
-    const toast = document.getElementById('toast');
-    toast.textContent = msg;
-    toast.className = 'toast show ' + type;
-    clearTimeout(toast._timer);
-    toast._timer = setTimeout(() => { toast.className = 'toast'; }, 3500);
-  }
-
-  // ── Init ──────────────────────────────────────────────────────────────────────
-  loadOrders();
-  setInterval(loadOrders, 60000);
-</script>
-</body>
 </html>
