@@ -581,9 +581,9 @@
         if (type === 'invoice') await doPrintInvoice(idx);
         if (type === 'packing') await doPrintPackingSlip(idx);
         if (type === 'all') {
-          await doPrintLabel(idx);
-          await doPrintInvoice(idx);
-          await doPrintPackingSlip(idx);
+          try { await doPrintLabel(idx); } catch(e) { showToast(`⚠️ ${ordersData[idx].name} label: ${e.message}`, 'error'); await new Promise(r=>setTimeout(r,1000)); }
+          try { await doPrintInvoice(idx); } catch(e) { showToast(`⚠️ ${ordersData[idx].name} invoice: ${e.message}`, 'error'); await new Promise(r=>setTimeout(r,1000)); }
+          try { await doPrintPackingSlip(idx); } catch(e) { showToast(`⚠️ ${ordersData[idx].name} slip: ${e.message}`, 'error'); await new Promise(r=>setTimeout(r,1000)); }
         }
         done++;
         showToast(`⏳ ${done}/${indexes.length} done...`, 'info');
@@ -603,7 +603,7 @@
     const res = await fetch('/api/print/label', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderName: order.name, customerName: order.customerName, address: order.address, phone: order.phone }),
+      body: JSON.stringify({ orderName: order.name, customerName: order.customerName, address: order.address, addressLine1: order.addressLine1, addressLine2: order.addressLine2, addressCity: order.addressCity, phone: order.phone }),
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
