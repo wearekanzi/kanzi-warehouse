@@ -38,6 +38,17 @@
       font-weight: 600;
     }
 
+    .print-history-badge {
+      background: #7c3aed;
+      color: white;
+      border-radius: 10px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
     .refresh-btn {
       background: #2563eb;
       color: white;
@@ -337,6 +348,7 @@
 <script>
   let ordersData = [];
   let selectedIndexes = new Set();
+  let printHistory = {};
 
   // ── Load orders ──────────────────────────────────────────────────────────────
   async function loadOrders() {
@@ -350,10 +362,15 @@
       <div class="loading"><div class="spinner"></div><p>Loading orders...</p></div>`;
 
     try {
-      const res = await fetch('/api/orders');
-      const data = await res.json();
+      const [ordersRes, historyRes] = await Promise.all([
+        fetch('/api/orders'),
+        fetch('/api/print-history'),
+      ]);
+      const data = await ordersRes.json();
+      const histData = await historyRes.json();
       if (!data.success) throw new Error(data.error);
       ordersData = data.orders;
+      printHistory = histData.history || {};
       document.getElementById('order-count').textContent = ordersData.length;
       renderOrders(ordersData);
     } catch (err) {
@@ -394,6 +411,13 @@
         </tr>
       `).join('');
 
+      // Print history badge
+      const hist = printHistory[order.name];
+      const totalPrints = hist ? (hist.label || 0) + (hist.invoice || 0) + (hist.packing || 0) : 0;
+      const printBadge = totalPrints > 0
+        ? `<span class="print-history-badge" title="Label:${hist.label||0} Invoice:${hist.invoice||0} Slip:${hist.packing||0}">🖨️ ${totalPrints}x</span>`
+        : '';
+
       return `
         <div class="order-card" id="card-${idx}">
           <div class="order-header" onclick="toggleCard(${idx})">
@@ -402,6 +426,7 @@
                 onclick="event.stopPropagation(); toggleSelect(${idx})" />
               <span class="order-number">${order.name}</span>
               <span class="order-status">${order.status}</span>
+              ${printBadge}
             </div>
             <div style="display:flex;align-items:center;gap:12px;">
               <span class="order-date">${date}</span>
