@@ -178,6 +178,12 @@ app.get('/api/orders', async (req, res) => {
                   currencyCode
                 }
               }
+              totalOutstandingSet {
+                shopMoney {
+                  amount
+                  currencyCode
+                }
+              }
               tags
             }
           }
@@ -202,6 +208,14 @@ app.get('/api/orders', async (req, res) => {
       const tags = (o.tags || []).map(t => t.toLowerCase());
       const isExchange = tags.some(t => t.includes('exchange'));
 
+      // Amount calculations
+      // For COD orders, GraphQL totalOutstandingSet returns 0 (only counts electronic payments).
+      // Fix: outstanding = currentTotal - totalReceived. COD orders have totalReceived=0 so outstanding = full amount.
+      const currency = o.totalPriceSet.shopMoney.currencyCode;
+      const currentTotal = parseFloat(o.currentTotalPriceSet?.shopMoney?.amount || o.totalPriceSet.shopMoney.amount);
+      const totalReceived = parseFloat(o.totalReceivedSet?.shopMoney?.amount || 0);
+      const outstanding = Math.max(0, currentTotal - totalReceived);
+
       return {
         id: o.id,
         shopifyId: o.id.replace('gid://shopify/Order/', ''),
@@ -224,10 +238,8 @@ app.get('/api/orders', async (req, res) => {
           imageUrl: li.node.variant?.image?.url || '',
           storageLocation: li.node.variant?.product?.metafield?.value || '',
         })),
-        // currentTotal = actual order value (adjusted for exchanges/refunds)
-        // totalOutstanding = what the customer still owes (what driver should collect)
-        total: `${parseFloat(o.currentTotalPriceSet?.shopMoney?.amount || o.totalPriceSet.shopMoney.amount).toFixed(3)} ${o.totalPriceSet.shopMoney.currencyCode}`,
-        amountToCollect: `${parseFloat(o.totalOutstandingSet?.shopMoney?.amount || 0).toFixed(3)} ${o.totalPriceSet.shopMoney.currencyCode}`,
+        total: `${currentTotal.toFixed(3)} ${currency}`,
+        amountToCollect: `${outstanding.toFixed(3)} ${currency}`,
       };
     });
 
