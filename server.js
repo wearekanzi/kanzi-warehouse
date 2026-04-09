@@ -245,13 +245,15 @@ app.post('/api/print/label', async (req, res) => {
       // Auto-add to delivery queue on first label print
       try {
         const { shopifyId, customerName: custName, address: addr, phone: ph, total: tot, isExchange: isExch } = req.body;
-        const orderType = isExchange ? 'EXCHANGE' : 'ORDER';
+        const orderType = isExch ? 'EXCHANGE' : 'ORDER';
         // Check if already in delivery queue
         const existing = await supabase('GET', `/deliveries?order_name=eq.${encodeURIComponent(orderName)}&limit=1`);
         if (!existing || existing.length === 0) {
-          // Parse amount
+          // Parse amount — exchange orders with zero balance have nothing to collect/return
           const amountParts = (tot || '').split(' ');
-          const amount = amountParts[0] || '';
+          const rawAmount = parseFloat(amountParts[0]) || 0;
+          const amount = rawAmount > 0 ? String(rawAmount) : '';
+          const amount_type = rawAmount > 0 ? (isExch ? 'collect' : 'collect') : null;
           await supabase('POST', '/deliveries', {
             order_name: orderName,
             order_type: orderType,
@@ -260,7 +262,7 @@ app.post('/api/print/label', async (req, res) => {
             address: addr || '',
             phone: ph || '',
             amount,
-            amount_type: 'collect',
+            amount_type,
             shopify_id: shopifyId || '',
           });
         }
