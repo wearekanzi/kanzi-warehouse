@@ -158,6 +158,21 @@ app.get('/api/orders', async (req, res) => {
                   currencyCode
                 }
               }
+              returns(first: 10) {
+                edges {
+                  node {
+                    exchangeLineItems(first: 20) {
+                      edges {
+                        node {
+                          lineItems {
+                            id
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -168,12 +183,32 @@ app.get('/api/orders', async (req, res) => {
       const o = e.node;
       const addr = o.shippingAddress || {};
       const customer = o.customer || {};
+
+      // Collect all line item IDs that are exchange items
+      const exchangeLineItemIds = new Set();
+      (o.returns?.edges || []).forEach(ret => {
+        (ret.node.exchangeLineItems?.edges || []).forEach(eli => {
+          (eli.node.lineItems || []).forEach(li => {
+            exchangeLineItemIds.add(li.id);
+          });
+        });
+      });
+
+      // Unfulfilled line items
+      const unfulfilledItems = o.lineItems.edges.filter(li => li.node.fulfillableQuantity > 0);
+
+      // Order is an exchange if it has exchange items AND all unfulfilled items are exchange items
+      const isExchange = exchangeLineItemIds.size > 0 &&
+        unfulfilledItems.length > 0 &&
+        unfulfilledItems.every(li => exchangeLineItemIds.has(li.node.id));
+
       return {
         id: o.id,
         shopifyId: o.id.replace('gid://shopify/Order/', ''),
         name: o.name,
         createdAt: o.createdAt,
         status: o.displayFulfillmentStatus,
+        isExchange,
         customerName: `${customer.firstName || ''} ${customer.lastName || ''}`.trim(),
         phone: addr.phone || customer.phone || '',
         address: [addr.address1, addr.address2, addr.city, addr.province, addr.country]
@@ -181,16 +216,14 @@ app.get('/api/orders', async (req, res) => {
         addressLine1: addr.address1 || '',
         addressLine2: addr.address2 || '',
         addressCity: [addr.city, addr.province, addr.country].filter(Boolean).join(', '),
-        items: o.lineItems.edges
-          .filter(li => li.node.fulfillableQuantity > 0)
-          .map(li => ({
-            title: li.node.title,
-            variant: li.node.variant?.title !== 'Default Title' ? li.node.variant?.title : '',
-            sku: li.node.variant?.sku || '',
-            quantity: li.node.fulfillableQuantity,
-            imageUrl: li.node.variant?.image?.url || '',
-            storageLocation: li.node.variant?.product?.metafield?.value || '',
-          })),
+        items: unfulfilledItems.map(li => ({
+          title: li.node.title,
+          variant: li.node.variant?.title !== 'Default Title' ? li.node.variant?.title : '',
+          sku: li.node.variant?.sku || '',
+          quantity: li.node.fulfillableQuantity,
+          imageUrl: li.node.variant?.image?.url || '',
+          storageLocation: li.node.variant?.product?.metafield?.value || '',
+        })),
         total: `${o.totalPriceSet.shopMoney.amount} ${o.totalPriceSet.shopMoney.currencyCode}`,
       };
     });
@@ -205,7 +238,7 @@ app.get('/api/orders', async (req, res) => {
 // ─── API: PRINT LABEL ─────────────────────────────────────────────────────────
 app.post('/api/print/label', async (req, res) => {
   try {
-    const { orderName, customerName, address, addressLine1, addressLine2, addressCity, phone } = req.body;
+    const { orderName, customerName, address, addressLine1, addressLine2, addressCity, phone, isExchange } = req.body;
 
     // Transliterate any Arabic text to English for ZPL compatibility
     const safeName    = transliterate(customerName || '') || '';
@@ -215,7 +248,7 @@ app.post('/api/print/label', async (req, res) => {
     const safeAddress = transliterate(address || '') || '';
 
     // Build ZPL for Zebra ZD420 300dpi, label size 1.77x3.14in (531x942 dots)
-    const zpl = buildZPL({ orderName, customerName: safeName, address: safeAddress, addressLine1: safeAddr1, addressLine2: safeAddr2, addressCity: safeCity, phone });
+    const zpl = buildZPL({ orderName, customerName: safeName, address: safeAddress, addressLine1: safeAddr1, addressLine2: safeAddr2, addressCity: safeCity, phone, isExchange });
 
     // Send to Mac Mini relay
     const relayRes = await axios.post(`${RELAY_URL}/print/label`, { zpl });
@@ -344,7 +377,7 @@ function buildArabicGFCmd(text, x, y, width, height, fontSize, label) {
 }
 
 // ─── ZPL BUILDER ─────────────────────────────────────────────────────────
-function buildZPL({ orderName, customerName, address, addressLine1, addressLine2, addressCity, phone }) {
+function buildZPL({ orderName, customerName, address, addressLine1, addressLine2, addressCity, phone, isExchange }) {
   // Label: 1.77in x 3.14in at 300dpi = 531 x 942 dots
   // Kanzi brand template matching the original PrintMaster design
 
@@ -391,7 +424,7 @@ function buildZPL({ orderName, customerName, address, addressLine1, addressLine2
 ^FO265,92^BY2,2,55^BEN,55,N,N^FD${orderNum}^FS
 
 ^FO8,250^GB515,4,4^FS
-^FO0,263^A0N,44,44^FB531,1,,C^FDORDER ${orderName}^FS
+^FO0,263^A0N,44,44^FB531,1,,C^FD${isExchange ? 'EXCHANGE' : 'ORDER'} ${orderName}^FS
 ^FO8,318^GB515,4,4^FS
 
 ^FO8,338^A0N,26,26^FDSHIP TO:^FS

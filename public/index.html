@@ -603,7 +603,7 @@
     const res = await fetch('/api/print/label', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderName: order.name, customerName: order.customerName, address: order.address, addressLine1: order.addressLine1, addressLine2: order.addressLine2, addressCity: order.addressCity, phone: order.phone }),
+      body: JSON.stringify({ orderName: order.name, customerName: order.customerName, address: order.address, addressLine1: order.addressLine1, addressLine2: order.addressLine2, addressCity: order.addressCity, phone: order.phone, isExchange: order.isExchange }),
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
