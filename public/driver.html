@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Kanzi Driver</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+
+    header {
+      background: #1a1a2e;
+      color: white;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    header h1 { font-size: 17px; font-weight: 700; }
+
+    .refresh-btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .refresh-btn:disabled { background: #6b7280; cursor: not-allowed; }
+
+    .filter-pills {
+      display: flex;
+      gap: 8px;
+      padding: 14px 16px 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .pill {
+      border: none;
+      border-radius: 20px;
+      padding: 7px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      background: #e5e7eb;
+      color: #374151;
+      flex-shrink: 0;
+    }
+    .pill.active { background: #1a1a2e; color: white; }
+
+    .container { padding: 8px 16px; }
+
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: #6b7280;
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 4px solid #e5e7eb;
+      border-top-color: #2563eb;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: #6b7280;
+    }
+    .empty .icon { font-size: 44px; margin-bottom: 10px; }
+
+    /* Delivery card */
+    .delivery-card {
+      background: white;
+      border-radius: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    .card-top {
+      padding: 14px 16px 10px;
+    }
+
+    .card-row1 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .card-left { display: flex; align-items: center; gap: 8px; }
+
+    .order-type-badge {
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .type-order    { background: #dbeafe; color: #1d4ed8; }
+    .type-exchange { background: #fef3c7; color: #92400e; }
+    .type-return   { background: #fce7f3; color: #9d174d; }
+
+    .order-name { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+
+    .status-badge {
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .status-pending    { background: #fef3c7; color: #92400e; }
+    .status-picked_up  { background: #dbeafe; color: #1d4ed8; }
+    .status-delivered  { background: #d1fae5; color: #065f46; }
+    .status-no_answer  { background: #fee2e2; color: #991b1b; }
+
+    .amount-badge {
+      display: inline-block;
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      color: #166534;
+      border-radius: 8px;
+      padding: 4px 12px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .amount-badge.refund {
+      background: #fef2f2;
+      border-color: #fca5a5;
+      color: #991b1b;
+    }
+
+    .info-line {
+      font-size: 14px;
+      color: #374151;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .info-line .icon { flex-shrink: 0; font-size: 15px; }
+    .info-line .text { flex: 1; }
+
+    .customer-name { font-size: 15px; font-weight: 600; color: #1a1a2e; margin-bottom: 8px; }
+
+    /* Action buttons */
+    .card-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 10px 16px 14px;
+      border-top: 1px solid #f3f4f6;
+    }
+    .action-btn {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .action-btn:active { transform: scale(0.97); }
+    .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-pickup    { background: #2563eb; color: white; }
+    .btn-delivered { background: #059669; color: white; }
+    .btn-noanswer  { background: #f59e0b; color: white; }
+    .btn-reset     { background: #e5e7eb; color: #374151; }
+    .btn-call      { background: #1a1a2e; color: white; }
+    .btn-whatsapp  { background: #25d366; color: white; }
+    .btn-full      { grid-column: 1 / -1; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1a1a2e;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 999;
+      transition: transform 0.3s;
+      white-space: nowrap;
+      max-width: 90vw;
+      text-align: center;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.success { background: #059669; }
+    .toast.error   { background: #dc2626; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🚗 Driver Portal</h1>
+  <button class="refresh-btn" id="refresh-btn" onclick="loadDeliveries()">↻ Refresh</button>
+</header>
+
+<div class="filter-pills">
+  <button class="pill active" id="pill-all"       onclick="setFilter('all')">All</button>
+  <button class="pill"        id="pill-pending"   onclick="setFilter('pending')">Pending</button>
+  <button class="pill"        id="pill-picked_up" onclick="setFilter('picked_up')">Picked Up</button>
+  <button class="pill"        id="pill-delivered" onclick="setFilter('delivered')">Delivered</button>
+  <button class="pill"        id="pill-no_answer" onclick="setFilter('no_answer')">No Answer</button>
+</div>
+
+<div class="container">
+  <div id="cards-container">
+    <div class="loading"><div class="spinner"></div><p>Loading orders...</p></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let allDeliveries = [];
+  let currentFilter = 'all';
+
+  async function loadDeliveries() {
+    const btn = document.getElementById('refresh-btn');
+    btn.disabled = true;
+    btn.textContent = '↻ Loading...';
+    document.getElementById('cards-container').innerHTML =
+      '<div class="loading"><div class="spinner"></div><p>Loading orders...</p></div>';
+    try {
+      const res = await fetch('/api/deliveries');
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      allDeliveries = data.deliveries;
+      renderCards();
+    } catch (err) {
+      document.getElementById('cards-container').innerHTML =
+        `<div class="empty"><div class="icon">⚠️</div><p>Failed to load: ${err.message}</p></div>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '↻ Refresh';
+    }
+  }
+
+  function setFilter(f) {
+    currentFilter = f;
+    ['all','pending','picked_up','delivered','no_answer'].forEach(id => {
+      document.getElementById('pill-' + id).classList.toggle('active', id === f);
+    });
+    renderCards();
+  }
+
+  function renderCards() {
+    const container = document.getElementById('cards-container');
+    const list = currentFilter === 'all'
+      ? allDeliveries
+      : allDeliveries.filter(d => d.status === currentFilter);
+
+    if (list.length === 0) {
+      container.innerHTML = '<div class="empty"><div class="icon">✅</div><p>No orders here.</p></div>';
+      return;
+    }
+
+    container.innerHTML = list.map(d => {
+      const typeClass = d.order_type === 'EXCHANGE' ? 'type-exchange' : d.order_type === 'RETURN' ? 'type-return' : 'type-order';
+      const statusLabel = { pending: 'Pending', picked_up: 'Picked Up', delivered: 'Delivered', no_answer: 'No Answer' }[d.status] || d.status;
+      const amountIsRefund = d.amount_type === 'refund';
+      const amountText = d.amount
+        ? `${amountIsRefund ? '↩ Return' : '💰 Collect'}: ${d.amount} KWD`
+        : '';
+
+      const phone = (d.phone || '').replace(/[^0-9+]/g, '');
+      const waMsg = encodeURIComponent(
+        `${d.order_type} ${d.order_name}\n📍 ${d.address || '—'}\n📞 ${d.phone || '—'}\n💰 ${amountIsRefund ? 'Return' : 'Collect'}: ${d.amount || '0'} KWD`
+      );
+
+      // Determine which action buttons to show
+      const showPickup    = d.status !== 'picked_up';
+      const showDelivered = d.status !== 'delivered';
+      const showNoAnswer  = d.status !== 'no_answer';
+      const showReset     = d.status !== 'pending';
+
+      return `
+        <div class="delivery-card" id="dcard-${d.id}">
+          <div class="card-top">
+            <div class="card-row1">
+              <div class="card-left">
+                <span class="order-type-badge ${typeClass}">${d.order_type}</span>
+                <span class="order-name">${d.order_name}</span>
+              </div>
+              <span class="status-badge status-${d.status}">${statusLabel}</span>
+            </div>
+
+            ${amountText ? `<div class="amount-badge ${amountIsRefund ? 'refund' : ''}">${amountText}</div>` : ''}
+
+            <div class="customer-name">${d.customer_name || '—'}</div>
+            <div class="info-line"><span class="icon">📍</span><span class="text">${d.address || '—'}</span></div>
+            <div class="info-line"><span class="icon">📞</span><span class="text">${d.phone || '—'}</span></div>
+          </div>
+
+          <div class="card-actions">
+            ${showPickup    ? `<button class="action-btn btn-pickup"    onclick="updateStatus('${d.id}','picked_up','${d.shopify_id}','${d.order_type}')">📦 Picked Up</button>` : ''}
+            ${showDelivered ? `<button class="action-btn btn-delivered" onclick="updateStatus('${d.id}','delivered','${d.shopify_id}','${d.order_type}')">✅ Delivered</button>` : ''}
+            ${showNoAnswer  ? `<button class="action-btn btn-noanswer"  onclick="updateStatus('${d.id}','no_answer','${d.shopify_id}','${d.order_type}')">📵 No Answer</button>` : ''}
+            ${showReset     ? `<button class="action-btn btn-reset"     onclick="updateStatus('${d.id}','pending','${d.shopify_id}','${d.order_type}')">↩ Reset</button>` : ''}
+            ${phone ? `<a href="tel:${phone}" style="display:contents;"><button class="action-btn btn-call">📞 Call</button></a>` : ''}
+            ${phone ? `<a href="https://wa.me/${phone.replace('+','')}?text=${waMsg}" target="_blank" style="display:contents;"><button class="action-btn btn-whatsapp">💬 WhatsApp</button></a>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  async function updateStatus(id, status, shopifyId, orderType) {
+    // Optimistic UI update
+    const d = allDeliveries.find(x => x.id === id);
+    if (d) d.status = status;
+    renderCards();
+
+    try {
+      const res = await fetch('/api/deliveries/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status, shopifyId, orderType }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      const labels = { picked_up: '📦 Picked up!', delivered: '✅ Delivered!', no_answer: '📵 No answer marked', pending: '↩ Reset to pending' };
+      showToast(labels[status] || status, 'success');
+    } catch (err) {
+      // Revert on error
+      if (d) d.status = d._prevStatus || 'pending';
+      renderCards();
+      showToast('❌ ' + err.message, 'error');
+    }
+  }
+
+  function showToast(msg, type = '') {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.className = 'toast show ' + type;
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => { toast.className = 'toast'; }, 3000);
+  }
+
+  // Init
+  loadDeliveries();
+  // Auto-refresh every 30 seconds
+  setInterval(loadDeliveries, 30000);
+</script>
+</body>
+</html>

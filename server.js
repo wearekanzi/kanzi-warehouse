@@ -30,6 +30,11 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Driver portal route
+app.get('/driver', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'driver.html'));
+});
+
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 const SHOPIFY_SHOP        = process.env.SHOPIFY_SHOP;
 const SHOPIFY_CLIENT_ID   = process.env.SHOPIFY_CLIENT_ID;
@@ -41,6 +46,9 @@ const ZOHO_REFRESH_TOKEN  = process.env.ZOHO_REFRESH_TOKEN;
 const ZOHO_ORG_ID         = process.env.ZOHO_ORG_ID;
 
 const RELAY_URL           = process.env.RELAY_URL; // Mac Mini relay URL
+
+const SUPABASE_URL        = process.env.SUPABASE_URL;
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
 
 // ─── TOKEN CACHE ─────────────────────────────────────────────────────────────
 let shopifyToken = { value: null, expiresAt: 0 };
@@ -252,7 +260,34 @@ app.post('/api/print/label', async (req, res) => {
 
     // Send to Mac Mini relay
     const relayRes = await axios.post(`${RELAY_URL}/print/label`, { zpl });
-    if (relayRes.data.success) recordPrint(orderName, 'label');
+    if (relayRes.data.success) {
+      recordPrint(orderName, 'label');
+      // Auto-add to delivery queue on first label print
+      try {
+        const { shopifyId, customerName: custName, address: addr, phone: ph, total: tot, isExchange: isExch } = req.body;
+        const orderType = isExchange ? 'EXCHANGE' : 'ORDER';
+        // Check if already in delivery queue
+        const existing = await supabase('GET', `/deliveries?order_name=eq.${encodeURIComponent(orderName)}&limit=1`);
+        if (!existing || existing.length === 0) {
+          // Parse amount
+          const amountParts = (tot || '').split(' ');
+          const amount = amountParts[0] || '';
+          await supabase('POST', '/deliveries', {
+            order_name: orderName,
+            order_type: orderType,
+            status: 'pending',
+            customer_name: custName || '',
+            address: addr || '',
+            phone: ph || '',
+            amount,
+            amount_type: 'collect',
+            shopify_id: shopifyId || '',
+          });
+        }
+      } catch (e) {
+        console.error('Delivery queue error:', e.message);
+      }
+    }
     res.json(relayRes.data);
   } catch (err) {
     console.error('Label print error:', err.message);
@@ -332,6 +367,100 @@ app.post('/api/print/invoice', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
+// ─── SUPABASE HELPER ─────────────────────────────────────────────────────────
+async function supabase(method, path, body) {
+  const res = await axios({
+    method,
+    url: `${SUPABASE_URL}/rest/v1${path}`,
+    headers: {
+      'apikey': SUPABASE_SECRET_KEY,
+      'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'return=representation' : 'return=representation',
+    },
+    data: body,
+  });
+  return res.data;
+}
+
+// ─── API: GET DELIVERIES ──────────────────────────────────────────────────────
+app.get('/api/deliveries', async (req, res) => {
+  try {
+    const data = await supabase('GET', '/deliveries?order=created_at.desc&limit=200');
+    res.json({ success: true, deliveries: data });
+  } catch (err) {
+    console.error('Deliveries fetch error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── API: UPDATE DELIVERY STATUS ─────────────────────────────────────────────
+app.post('/api/deliveries/status', async (req, res) => {
+  try {
+    const { id, status, shopifyId, orderType } = req.body;
+    const now = new Date().toISOString();
+    const patch = { status, updated_at: now };
+    if (status === 'picked_up') patch.picked_up_at = now;
+    if (status === 'delivered') patch.delivered_at = now;
+
+    await supabase('PATCH', `/deliveries?id=eq.${id}`, patch);
+
+    // Auto-fulfill in Shopify when picked up (only for ORDER and EXCHANGE types)
+    if (status === 'picked_up' && shopifyId && orderType !== 'RETURN') {
+      try {
+        await fulfillShopifyOrder(shopifyId);
+      } catch (e) {
+        console.error('Shopify fulfill error:', e.message);
+      }
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Status update error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── SHOPIFY FULFILL ORDER ────────────────────────────────────────────────────
+async function fulfillShopifyOrder(shopifyId) {
+  // Get fulfillment orders
+  const foData = await shopifyGQL(`
+    query getFulfillmentOrders($orderId: ID!) {
+      order(id: $orderId) {
+        fulfillmentOrders(first: 5) {
+          edges {
+            node {
+              id
+              status
+            }
+          }
+        }
+      }
+    }
+  `, { orderId: `gid://shopify/Order/${shopifyId}` });
+
+  const fulfillmentOrders = foData.data?.order?.fulfillmentOrders?.edges || [];
+  const openFOs = fulfillmentOrders
+    .filter(e => e.node.status === 'OPEN')
+    .map(e => ({ fulfillmentOrderId: e.node.id }));
+
+  if (openFOs.length === 0) return;
+
+  await shopifyGQL(`
+    mutation fulfillmentCreate($fulfillment: FulfillmentInput!) {
+      fulfillmentCreate(fulfillment: $fulfillment) {
+        fulfillment { id status }
+        userErrors { field message }
+      }
+    }
+  `, {
+    fulfillment: {
+      lineItemsByFulfillmentOrder: openFOs,
+      notifyCustomer: false,
+    }
+  });
+}
 
 // ─── API: ARCHIVE ORDER ───────────────────────────────────────────────────────
 app.post('/api/orders/archive', async (req, res) => {

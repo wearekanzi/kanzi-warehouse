@@ -319,11 +319,142 @@
 
 <header>
   <div style="display:flex;align-items:center;gap:12px;">
-    <h1>📦 Warehouse Orders</h1>
-    <span class="badge" id="order-count">0</span>
+    <h1>📦 Kanzi Warehouse</h1>
   </div>
-  <button class="refresh-btn" id="refresh-btn" onclick="loadOrders()">↻ Refresh</button>
+  <div style="display:flex;gap:8px;">
+    <button class="nav-tab active" id="tab-warehouse" onclick="switchTab('warehouse')">📦 Warehouse <span class="badge" id="order-count" style="margin-left:4px;">0</span></button>
+    <button class="nav-tab" id="tab-delivery" onclick="switchTab('delivery')">🚗 Delivery <span class="badge" id="delivery-count" style="margin-left:4px;background:#059669;">0</span></button>
+  </div>
+  <button class="refresh-btn" id="refresh-btn" onclick="refreshCurrent()">↻ Refresh</button>
 </header>
+
+<!-- Nav tab styles -->
+<style>
+  .nav-tab {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .nav-tab.active { background: white; color: #1a1a2e; }
+  .nav-tab:hover:not(.active) { background: rgba(255,255,255,0.25); }
+
+  /* Delivery tab */
+  .delivery-container { max-width: 900px; margin: 0 auto; padding: 20px 16px; display: none; }
+  .delivery-container.active { display: block; }
+  .warehouse-container { display: block; }
+  .warehouse-container.hidden { display: none; }
+
+  .filter-pills {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    border: none;
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #e5e7eb;
+    color: #374151;
+  }
+  .pill.active { background: #1a1a2e; color: white; }
+
+  .delivery-card {
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
+  .delivery-header {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .delivery-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+  .order-type-badge {
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .type-order    { background: #dbeafe; color: #1d4ed8; }
+  .type-exchange { background: #fef3c7; color: #92400e; }
+  .type-return   { background: #fce7f3; color: #9d174d; }
+
+  .delivery-status {
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .status-pending    { background: #fef3c7; color: #92400e; }
+  .status-picked_up  { background: #dbeafe; color: #1d4ed8; }
+  .status-delivered  { background: #d1fae5; color: #065f46; }
+  .status-no_answer  { background: #fee2e2; color: #991b1b; }
+
+  .delivery-info { font-size: 13px; color: #6b7280; margin-top: 6px; }
+  .delivery-info strong { color: #1a1a2e; }
+
+  .delivery-actions {
+    display: flex;
+    gap: 8px;
+    padding: 10px 16px;
+    border-top: 1px solid #f3f4f6;
+    flex-wrap: wrap;
+  }
+  .d-btn {
+    border: none;
+    border-radius: 7px;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .d-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .d-btn-pickup    { background: #2563eb; color: white; }
+  .d-btn-delivered { background: #059669; color: white; }
+  .d-btn-noanswer  { background: #f59e0b; color: white; }
+  .d-btn-pending   { background: #6b7280; color: white; }
+  .d-btn-whatsapp  { background: #25d366; color: white; }
+  .amount-badge {
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    color: #166534;
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .amount-badge.refund {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #991b1b;
+  }
+</style>
 
 <!-- Bulk action bar (appears when orders are selected) -->
 <div class="bulk-bar" id="bulk-bar">
@@ -334,12 +465,25 @@
   <button class="bulk-btn bulk-btn-all"     onclick="bulkPrint('all')"     id="bulk-btn-all">⚡ Print All</button>
 </div>
 
-<div class="container">
+<div class="container warehouse-container" id="warehouse-section">
   <div id="orders-container">
     <div class="loading">
       <div class="spinner"></div>
       <p>Loading orders...</p>
     </div>
+  </div>
+</div>
+
+<div class="delivery-container" id="delivery-section">
+  <div class="filter-pills">
+    <button class="pill active" id="pill-all"       onclick="setDeliveryFilter('all')">All</button>
+    <button class="pill"        id="pill-pending"   onclick="setDeliveryFilter('pending')">Pending</button>
+    <button class="pill"        id="pill-picked_up" onclick="setDeliveryFilter('picked_up')">Picked Up</button>
+    <button class="pill"        id="pill-delivered" onclick="setDeliveryFilter('delivered')">Delivered</button>
+    <button class="pill"        id="pill-no_answer" onclick="setDeliveryFilter('no_answer')">No Answer</button>
+  </div>
+  <div id="delivery-container">
+    <div class="loading"><div class="spinner"></div><p>Loading deliveries...</p></div>
   </div>
 </div>
 
@@ -349,6 +493,133 @@
   let ordersData = [];
   let selectedIndexes = new Set();
   let printHistory = {};
+  let deliveriesData = [];
+  let deliveryFilter = 'all';
+  let currentTab = 'warehouse';
+
+  // ── Tab switching ─────────────────────────────────────────────────────────────
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('tab-warehouse').classList.toggle('active', tab === 'warehouse');
+    document.getElementById('tab-delivery').classList.toggle('active', tab === 'delivery');
+    document.getElementById('warehouse-section').classList.toggle('hidden', tab !== 'warehouse');
+    document.getElementById('delivery-section').classList.toggle('active', tab === 'delivery');
+    document.getElementById('bulk-bar').style.display = tab !== 'warehouse' ? 'none' : '';
+    if (tab === 'delivery') loadDeliveries();
+  }
+
+  function refreshCurrent() {
+    if (currentTab === 'warehouse') loadOrders();
+    else loadDeliveries();
+  }
+
+  // ── Load deliveries ───────────────────────────────────────────────────────────
+  async function loadDeliveries() {
+    const btn = document.getElementById('refresh-btn');
+    btn.disabled = true;
+    btn.textContent = '↻ Loading...';
+    document.getElementById('delivery-container').innerHTML =
+      '<div class="loading"><div class="spinner"></div><p>Loading deliveries...</p></div>';
+    try {
+      const res = await fetch('/api/deliveries');
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      deliveriesData = data.deliveries;
+      const pending = deliveriesData.filter(d => d.status !== 'delivered').length;
+      document.getElementById('delivery-count').textContent = pending;
+      renderDeliveries();
+    } catch (err) {
+      document.getElementById('delivery-container').innerHTML =
+        `<div class="empty"><div class="icon">⚠️</div><p>Failed to load: ${err.message}</p></div>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '↻ Refresh';
+    }
+  }
+
+  // ── Filter pills ──────────────────────────────────────────────────────────────
+  function setDeliveryFilter(f) {
+    deliveryFilter = f;
+    ['all','pending','picked_up','delivered','no_answer'].forEach(id => {
+      document.getElementById('pill-' + id).classList.toggle('active', id === f);
+    });
+    renderDeliveries();
+  }
+
+  // ── Render deliveries ─────────────────────────────────────────────────────────
+  function renderDeliveries() {
+    const container = document.getElementById('delivery-container');
+    const filtered = deliveryFilter === 'all'
+      ? deliveriesData
+      : deliveriesData.filter(d => d.status === deliveryFilter);
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="empty"><div class="icon">🚗</div><p>No deliveries here.</p></div>';
+      return;
+    }
+
+    container.innerHTML = filtered.map(d => {
+      const typeClass = d.order_type === 'EXCHANGE' ? 'type-exchange' : d.order_type === 'RETURN' ? 'type-return' : 'type-order';
+      const statusLabel = { pending: 'Pending', picked_up: 'Picked Up', delivered: 'Delivered', no_answer: 'No Answer' }[d.status] || d.status;
+      const amountIsRefund = d.amount_type === 'refund';
+      const amountBadge = d.amount
+        ? `<span class="amount-badge ${amountIsRefund ? 'refund' : ''}">${amountIsRefund ? 'Refund' : 'Collect'}: ${d.amount} KWD</span>`
+        : '';
+
+      const waMsg = encodeURIComponent(
+        `${d.order_type} #${d.order_name}\n📍 ${d.address || '—'}\n📞 ${d.phone || '—'}\n💰 ${amountIsRefund ? 'Return' : 'Collect'}: ${d.amount || '0'} KWD`
+      );
+      const waLink = d.phone
+        ? `<a href="https://wa.me/${d.phone.replace(/[^0-9]/g,'')}?text=${waMsg}" target="_blank"><button class="d-btn d-btn-whatsapp">💬 WhatsApp</button></a>`
+        : '';
+
+      return `
+        <div class="delivery-card" id="dcard-${d.id}">
+          <div class="delivery-header">
+            <div class="delivery-left">
+              <span class="order-type-badge ${typeClass}">${d.order_type}</span>
+              <strong style="font-size:16px;">${d.order_name}</strong>
+              ${amountBadge}
+            </div>
+            <span class="delivery-status status-${d.status}">${statusLabel}</span>
+          </div>
+          <div style="padding:0 16px 12px;">
+            <div class="delivery-info"><strong>${d.customer_name || '—'}</strong></div>
+            <div class="delivery-info">📍 ${d.address || '—'}</div>
+            <div class="delivery-info">📞 ${d.phone || '—'}</div>
+          </div>
+          <div class="delivery-actions">
+            ${d.status !== 'picked_up'  ? `<button class="d-btn d-btn-pickup"    onclick="updateDeliveryStatus('${d.id}','picked_up','${d.shopify_id}','${d.order_type}')">📦 Picked Up</button>` : ''}
+            ${d.status !== 'delivered'  ? `<button class="d-btn d-btn-delivered" onclick="updateDeliveryStatus('${d.id}','delivered','${d.shopify_id}','${d.order_type}')">✅ Delivered</button>` : ''}
+            ${d.status !== 'no_answer' ? `<button class="d-btn d-btn-noanswer"  onclick="updateDeliveryStatus('${d.id}','no_answer','${d.shopify_id}','${d.order_type}')">📵 No Answer</button>` : ''}
+            ${d.status !== 'pending'   ? `<button class="d-btn d-btn-pending"   onclick="updateDeliveryStatus('${d.id}','pending','${d.shopify_id}','${d.order_type}')">↩ Reset</button>` : ''}
+            ${waLink}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Update delivery status ────────────────────────────────────────────────────
+  async function updateDeliveryStatus(id, status, shopifyId, orderType) {
+    try {
+      const res = await fetch('/api/deliveries/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status, shopifyId, orderType }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      // Update local data
+      const d = deliveriesData.find(x => x.id === id);
+      if (d) d.status = status;
+      renderDeliveries();
+      const labels = { picked_up: 'Picked Up ✅', delivered: 'Delivered ✅', no_answer: 'No Answer marked', pending: 'Reset to Pending' };
+      showToast('✅ ' + (labels[status] || status), 'success');
+      if (status === 'picked_up') showToast('📦 Picked up + Shopify fulfilled!', 'success');
+    } catch (err) {
+      showToast('❌ ' + err.message, 'error');
+    }
+  }
 
   // ── Load orders ──────────────────────────────────────────────────────────────
   async function loadOrders() {
@@ -603,7 +874,7 @@
     const res = await fetch('/api/print/label', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderName: order.name, customerName: order.customerName, address: order.address, addressLine1: order.addressLine1, addressLine2: order.addressLine2, addressCity: order.addressCity, phone: order.phone, isExchange: order.isExchange }),
+      body: JSON.stringify({ orderName: order.name, shopifyId: order.shopifyId, customerName: order.customerName, address: order.address, addressLine1: order.addressLine1, addressLine2: order.addressLine2, addressCity: order.addressCity, phone: order.phone, isExchange: order.isExchange, total: order.total }),
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
