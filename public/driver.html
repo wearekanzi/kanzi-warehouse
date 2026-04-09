@@ -4,371 +4,199 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Kanzi Driver</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #f0f2f5;
-      color: #1a1a2e;
-      min-height: 100vh;
-      padding-bottom: 40px;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --black: #000000; --white: #ffffff; --off-white: #F5F4F0;
+      --gray-100: #f4f4f4; --gray-200: #e8e8e8; --gray-300: #d0d0d0;
+      --gray-400: #a0a0a0; --gray-500: #707070; --gray-600: #505050; --gray-700: #303030;
+      --radius: 14px; --radius-sm: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 14px rgba(0,0,0,0.06);
+      --shadow-lg: 0 4px 24px rgba(0,0,0,0.13);
+      --green: #1a7a4a; --green-bg: #edf7f2;
+      --red: #c0392b; --red-bg: #fdf0ee;
+      --amber: #b7860b; --amber-bg: #fdf8ec;
+      --blue: #1a4fa0; --blue-bg: #edf2fc;
     }
-
-    header {
-      background: #1a1a2e;
-      color: white;
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
-    header h1 { font-size: 17px; font-weight: 700; }
-
-    .refresh-btn {
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 13px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .refresh-btn:disabled { background: #6b7280; cursor: not-allowed; }
-
-    .filter-pills {
-      display: flex;
-      gap: 8px;
-      padding: 14px 16px 8px;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    .pill {
-      border: none;
-      border-radius: 20px;
-      padding: 7px 16px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      background: #e5e7eb;
-      color: #374151;
-      flex-shrink: 0;
-    }
-    .pill.active { background: #1a1a2e; color: white; }
-
-    .container { padding: 8px 16px; }
-
-    .loading {
-      text-align: center;
-      padding: 60px 20px;
-      color: #6b7280;
-    }
-    .spinner {
-      width: 36px; height: 36px;
-      border: 4px solid #e5e7eb;
-      border-top-color: #2563eb;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 14px;
-    }
+    body { font-family: 'Montserrat', -apple-system, sans-serif; background: var(--off-white); color: var(--black); min-height: 100vh; padding-bottom: 80px; }
+    header { background: var(--black); color: var(--white); padding: 0 18px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 200; }
+    .header-brand { display: flex; align-items: center; gap: 12px; }
+    .header-logo { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+    .header-logo svg { width: 28px; height: 28px; }
+    .header-title { font-size: 13px; font-weight: 800; letter-spacing: 2.5px; text-transform: uppercase; color: var(--white); }
+    .header-subtitle { font-size: 10px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray-400); margin-top: 1px; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .order-count-badge { background: var(--white); color: var(--black); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; }
+    .refresh-btn { background: transparent; color: var(--white); border: 1px solid rgba(255,255,255,0.25); border-radius: var(--radius-sm); padding: 7px 14px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.2s; }
+    .refresh-btn:hover { background: rgba(255,255,255,0.1); }
+    .refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .filter-wrap { background: var(--black); padding: 0 18px 14px; display: flex; gap: 7px; overflow-x: auto; -webkit-overflow-scrolling: touch; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .filter-wrap::-webkit-scrollbar { display: none; }
+    .pill { border: 1.5px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 6px 16px; font-size: 10px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.2s; background: transparent; color: rgba(255,255,255,0.5); white-space: nowrap; }
+    .pill:hover { border-color: rgba(255,255,255,0.6); color: var(--white); }
+    .pill.active { background: var(--white); border-color: var(--white); color: var(--black); }
+    .main { max-width: 600px; margin: 0 auto; padding: 18px 14px; }
+    .loading-state, .empty-state { text-align: center; padding: 70px 20px; color: var(--gray-400); }
+    .spinner { width: 32px; height: 32px; border: 2px solid var(--gray-200); border-top-color: var(--black); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 14px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    .empty {
-      text-align: center;
-      padding: 60px 20px;
-      color: #6b7280;
-    }
-    .empty .icon { font-size: 44px; margin-bottom: 10px; }
-
-    /* Delivery card */
-    .delivery-card {
-      background: white;
-      border-radius: 14px;
-      margin-bottom: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      overflow: hidden;
-    }
-
-    .card-top {
-      padding: 14px 16px 10px;
-    }
-
-    .card-row1 {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-
+    .empty-icon { font-size: 44px; margin-bottom: 12px; }
+    .empty-state p, .loading-state p { font-size: 13px; font-weight: 600; letter-spacing: 0.3px; }
+    .order-card { background: var(--white); border-radius: var(--radius); margin-bottom: 12px; box-shadow: var(--shadow); overflow: hidden; border: 1.5px solid var(--gray-100); transition: box-shadow 0.2s; }
+    .order-card:hover { box-shadow: var(--shadow-lg); }
+    .order-card.status-pending    { border-top: 3px solid var(--amber); }
+    .order-card.status-picked_up  { border-top: 3px solid var(--blue); }
+    .order-card.status-delivered  { border-top: 3px solid var(--green); }
+    .order-card.status-no_answer  { border-top: 3px solid var(--red); }
+    .card-top { padding: 16px 18px 12px; }
+    .card-row1 { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     .card-left { display: flex; align-items: center; gap: 8px; }
-
-    .order-type-badge {
-      border-radius: 6px;
-      padding: 3px 8px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-    .type-order    { background: #dbeafe; color: #1d4ed8; }
-    .type-exchange { background: #fef3c7; color: #92400e; }
-    .type-return   { background: #fce7f3; color: #9d174d; }
-
-    .order-name { font-size: 18px; font-weight: 700; color: #1a1a2e; }
-
-    .status-badge {
-      border-radius: 8px;
-      padding: 4px 10px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-    .status-pending    { background: #fef3c7; color: #92400e; }
-    .status-picked_up  { background: #dbeafe; color: #1d4ed8; }
-    .status-delivered  { background: #d1fae5; color: #065f46; }
-    .status-no_answer  { background: #fee2e2; color: #991b1b; }
-
-    .amount-badge {
-      display: inline-block;
-      background: #f0fdf4;
-      border: 1px solid #86efac;
-      color: #166534;
-      border-radius: 8px;
-      padding: 4px 12px;
-      font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 10px;
-    }
-    .amount-badge.refund {
-      background: #fef2f2;
-      border-color: #fca5a5;
-      color: #991b1b;
-    }
-
-    .info-line {
-      font-size: 14px;
-      color: #374151;
-      margin-bottom: 5px;
-      display: flex;
-      align-items: flex-start;
-      gap: 6px;
-    }
-    .info-line .icon { flex-shrink: 0; font-size: 15px; }
-    .info-line .text { flex: 1; }
-
-    .customer-name { font-size: 15px; font-weight: 600; color: #1a1a2e; margin-bottom: 8px; }
-
-    /* Action buttons */
-    .card-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      padding: 10px 16px 14px;
-      border-top: 1px solid #f3f4f6;
-    }
-    .action-btn {
-      border: none;
-      border-radius: 10px;
-      padding: 12px 8px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-    .action-btn:active { transform: scale(0.97); }
-    .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .btn-pickup    { background: #2563eb; color: white; }
-    .btn-delivered { background: #059669; color: white; }
-    .btn-noanswer  { background: #f59e0b; color: white; }
-    .btn-reset     { background: #e5e7eb; color: #374151; }
-    .btn-call      { background: #1a1a2e; color: white; }
-    .btn-whatsapp  { background: #25d366; color: white; }
-    .btn-full      { grid-column: 1 / -1; }
-
-    /* Toast */
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%) translateY(80px);
-      background: #1a1a2e;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      z-index: 999;
-      transition: transform 0.3s;
-      white-space: nowrap;
-      max-width: 90vw;
-      text-align: center;
-    }
+    .order-name { font-size: 20px; font-weight: 900; color: var(--black); letter-spacing: 0.3px; }
+    .type-pill { border-radius: 5px; padding: 3px 9px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; }
+    .type-order    { background: var(--gray-100); color: var(--gray-600); border: 1px solid var(--gray-200); }
+    .type-exchange { background: var(--amber-bg); color: var(--amber); border: 1px solid #f0d080; }
+    .type-return   { background: var(--red-bg); color: var(--red); border: 1px solid #e8b0aa; }
+    .status-badge { border-radius: 6px; padding: 5px 11px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    .sb-pending    { background: var(--amber-bg); color: var(--amber); }
+    .sb-picked_up  { background: var(--blue-bg); color: var(--blue); }
+    .sb-delivered  { background: var(--green-bg); color: var(--green); }
+    .sb-no_answer  { background: var(--red-bg); color: var(--red); }
+    .amount-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--green-bg); border: 1px solid #a8dfc0; color: var(--green); border-radius: 7px; padding: 7px 14px; font-size: 14px; font-weight: 800; margin-bottom: 12px; letter-spacing: 0.3px; }
+    .amount-chip.refund { background: var(--red-bg); border-color: #e8b0aa; color: var(--red); }
+    .customer-name { font-size: 16px; font-weight: 700; color: var(--black); margin-bottom: 8px; }
+    .info-row { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--gray-500); font-weight: 500; margin-bottom: 6px; line-height: 1.4; }
+    .info-row .ic { flex-shrink: 0; font-size: 15px; }
+    .contact-row { display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--gray-100); }
+    .contact-btn { flex: 1; border: none; border-radius: var(--radius-sm); padding: 12px; font-size: 12px; font-weight: 700; letter-spacing: 0.3px; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
+    .contact-btn:active { transform: scale(0.96); }
+    .btn-call { background: var(--gray-100); color: var(--black); border: 1px solid var(--gray-200); }
+    .btn-call:hover { background: var(--gray-200); }
+    .btn-wa { background: #25d366; color: white; }
+    .btn-wa:hover { background: #1db954; }
+    .status-actions { padding: 12px 18px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .sa-btn { border: none; border-radius: var(--radius-sm); padding: 14px 10px; font-size: 12px; font-weight: 800; letter-spacing: 0.3px; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .sa-btn:active:not(:disabled) { transform: scale(0.96); }
+    .sa-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .sa-pickup    { background: var(--black); color: var(--white); }
+    .sa-pickup:hover:not(:disabled)    { background: var(--gray-700); }
+    .sa-delivered { background: var(--green); color: var(--white); }
+    .sa-delivered:hover:not(:disabled) { background: #155a38; }
+    .sa-noanswer  { background: var(--amber); color: var(--white); }
+    .sa-noanswer:hover:not(:disabled)  { background: #9a6e09; }
+    .sa-reset     { background: var(--gray-100); color: var(--gray-600); border: 1px solid var(--gray-200); }
+    .sa-reset:hover:not(:disabled)     { background: var(--gray-200); }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(120px); background: var(--black); color: var(--white); padding: 14px 24px; border-radius: 10px; font-size: 13px; font-weight: 700; letter-spacing: 0.3px; z-index: 9999; transition: transform 0.3s ease; max-width: 90vw; text-align: center; box-shadow: var(--shadow-lg); font-family: 'Montserrat', sans-serif; }
     .toast.show { transform: translateX(-50%) translateY(0); }
-    .toast.success { background: #059669; }
-    .toast.error   { background: #dc2626; }
+    .toast.success { background: var(--green); }
+    .toast.error   { background: var(--red); }
+    .toast.info    { background: var(--gray-700); }
   </style>
 </head>
 <body>
-
 <header>
-  <h1>🚗 Driver Portal</h1>
-  <button class="refresh-btn" id="refresh-btn" onclick="loadDeliveries()">↻ Refresh</button>
+  <div class="header-brand">
+    <div class="header-logo">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="20" y="20" width="60" height="12" fill="white"/>
+        <rect x="20" y="36" width="40" height="12" fill="white"/>
+        <rect x="20" y="52" width="12" height="12" fill="white"/>
+        <rect x="38" y="52" width="12" height="12" fill="white"/>
+        <polygon points="20,64 32,64 50,85 38,85" fill="white"/>
+        <polygon points="44,64 56,64 74,85 62,85" fill="white"/>
+      </svg>
+    </div>
+    <div>
+      <div class="header-title">Kanzi</div>
+      <div class="header-subtitle">Driver</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="order-count-badge" id="order-count">0 pending</span>
+    <button class="refresh-btn" id="refresh-btn" onclick="loadOrders()">↻</button>
+  </div>
 </header>
-
-<div class="filter-pills">
+<div class="filter-wrap">
   <button class="pill active" id="pill-all"       onclick="setFilter('all')">All</button>
   <button class="pill"        id="pill-pending"   onclick="setFilter('pending')">Pending</button>
   <button class="pill"        id="pill-picked_up" onclick="setFilter('picked_up')">Picked Up</button>
   <button class="pill"        id="pill-delivered" onclick="setFilter('delivered')">Delivered</button>
   <button class="pill"        id="pill-no_answer" onclick="setFilter('no_answer')">No Answer</button>
 </div>
-
-<div class="container">
-  <div id="cards-container">
-    <div class="loading"><div class="spinner"></div><p>Loading orders...</p></div>
-  </div>
+<div class="main" id="main-container">
+  <div class="loading-state"><div class="spinner"></div><p>Loading orders...</p></div>
 </div>
-
 <div class="toast" id="toast"></div>
-
 <script>
-  let allDeliveries = [];
+  let allOrders = [];
   let currentFilter = 'all';
-
-  async function loadDeliveries() {
+  async function loadOrders() {
     const btn = document.getElementById('refresh-btn');
     btn.disabled = true;
-    btn.textContent = '↻ Loading...';
-    document.getElementById('cards-container').innerHTML =
-      '<div class="loading"><div class="spinner"></div><p>Loading orders...</p></div>';
+    document.getElementById('main-container').innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Loading orders...</p></div>';
     try {
       const res = await fetch('/api/deliveries');
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
-      allDeliveries = data.deliveries;
-      renderCards();
+      allOrders = data.deliveries || [];
+      updateCountBadge();
+      renderOrders();
     } catch (err) {
-      document.getElementById('cards-container').innerHTML =
-        `<div class="empty"><div class="icon">⚠️</div><p>Failed to load: ${err.message}</p></div>`;
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '↻ Refresh';
-    }
+      document.getElementById('main-container').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Failed to load: ' + err.message + '</p></div>';
+    } finally { btn.disabled = false; }
   }
-
+  function updateCountBadge() {
+    const pending = allOrders.filter(o => o.status === 'pending' || o.status === 'picked_up').length;
+    document.getElementById('order-count').textContent = pending + ' pending';
+  }
   function setFilter(f) {
     currentFilter = f;
     ['all','pending','picked_up','delivered','no_answer'].forEach(id => {
       document.getElementById('pill-' + id).classList.toggle('active', id === f);
     });
-    renderCards();
+    renderOrders();
   }
-
-  function renderCards() {
-    const container = document.getElementById('cards-container');
-    const list = currentFilter === 'all'
-      ? allDeliveries
-      : allDeliveries.filter(d => d.status === currentFilter);
-
-    if (list.length === 0) {
-      container.innerHTML = '<div class="empty"><div class="icon">✅</div><p>No orders here.</p></div>';
-      return;
-    }
-
-    container.innerHTML = list.map(d => {
-      const typeClass = d.order_type === 'EXCHANGE' ? 'type-exchange' : d.order_type === 'RETURN' ? 'type-return' : 'type-order';
-      const statusLabel = { pending: 'Pending', picked_up: 'Picked Up', delivered: 'Delivered', no_answer: 'No Answer' }[d.status] || d.status;
-      const amountIsRefund = d.amount_type === 'refund';
-      const amountText = d.amount
-        ? `${amountIsRefund ? '↩ Return' : '💰 Collect'}: ${d.amount} KWD`
-        : '';
-
-      const phone = (d.phone || '').replace(/[^0-9+]/g, '');
-      const waMsg = encodeURIComponent(
-        `${d.order_type} ${d.order_name}\n📍 ${d.address || '—'}\n📞 ${d.phone || '—'}\n💰 ${amountIsRefund ? 'Return' : 'Collect'}: ${d.amount || '0'} KWD`
-      );
-
-      // Determine which action buttons to show
-      const showPickup    = d.status !== 'picked_up';
-      const showDelivered = d.status !== 'delivered';
-      const showNoAnswer  = d.status !== 'no_answer';
-      const showReset     = d.status !== 'pending';
-
-      return `
-        <div class="delivery-card" id="dcard-${d.id}">
-          <div class="card-top">
-            <div class="card-row1">
-              <div class="card-left">
-                <span class="order-type-badge ${typeClass}">${d.order_type}</span>
-                <span class="order-name">${d.order_name}</span>
-              </div>
-              <span class="status-badge status-${d.status}">${statusLabel}</span>
-            </div>
-
-            ${amountText ? `<div class="amount-badge ${amountIsRefund ? 'refund' : ''}">${amountText}</div>` : ''}
-
-            <div class="customer-name">${d.customer_name || '—'}</div>
-            <div class="info-line"><span class="icon">📍</span><span class="text">${d.address || '—'}</span></div>
-            <div class="info-line"><span class="icon">📞</span><span class="text">${d.phone || '—'}</span></div>
-          </div>
-
-          <div class="card-actions">
-            ${showPickup    ? `<button class="action-btn btn-pickup"    onclick="updateStatus('${d.id}','picked_up','${d.shopify_id}','${d.order_type}')">📦 Picked Up</button>` : ''}
-            ${showDelivered ? `<button class="action-btn btn-delivered" onclick="updateStatus('${d.id}','delivered','${d.shopify_id}','${d.order_type}')">✅ Delivered</button>` : ''}
-            ${showNoAnswer  ? `<button class="action-btn btn-noanswer"  onclick="updateStatus('${d.id}','no_answer','${d.shopify_id}','${d.order_type}')">📵 No Answer</button>` : ''}
-            ${showReset     ? `<button class="action-btn btn-reset"     onclick="updateStatus('${d.id}','pending','${d.shopify_id}','${d.order_type}')">↩ Reset</button>` : ''}
-            ${phone ? `<a href="tel:${phone}" style="display:contents;"><button class="action-btn btn-call">📞 Call</button></a>` : ''}
-            ${phone ? `<a href="https://wa.me/${phone.replace('+','')}?text=${waMsg}" target="_blank" style="display:contents;"><button class="action-btn btn-whatsapp">💬 WhatsApp</button></a>` : ''}
-          </div>
-        </div>`;
+  function renderOrders() {
+    const container = document.getElementById('main-container');
+    const filtered = currentFilter === 'all' ? allOrders : allOrders.filter(o => o.status === currentFilter);
+    if (filtered.length === 0) { container.innerHTML = '<div class="empty-state"><div class="empty-icon">✓</div><p>No orders here.</p></div>'; return; }
+    container.innerHTML = filtered.map(o => {
+      const typeClass = o.order_type === 'EXCHANGE' ? 'type-exchange' : o.order_type === 'RETURN' ? 'type-return' : 'type-order';
+      const statusLabel = { pending: 'Pending', picked_up: 'Picked Up', delivered: 'Delivered', no_answer: 'No Answer' }[o.status] || o.status;
+      const amountIsRefund = o.amount_type === 'refund';
+      const amountChip = o.amount ? '<div class="amount-chip ' + (amountIsRefund ? 'refund' : '') + '">' + (amountIsRefund ? '↩ Return' : '💰 Collect') + ' <strong>' + o.amount + ' KWD</strong></div>' : '';
+      const phone = (o.phone || '').replace(/[^0-9+]/g, '');
+      const waMsg = encodeURIComponent(o.order_type + ' ' + o.order_name + '\n📍 ' + (o.address || '—') + '\n📞 ' + (o.phone || '—') + '\n💰 ' + (amountIsRefund ? 'Return' : 'Collect') + ': ' + (o.amount || '0') + ' KWD');
+      const contactRow = phone ? '<div class="contact-row"><a href="tel:' + phone + '" class="contact-btn btn-call">📞 Call</a><a href="https://wa.me/' + phone.replace('+','') + '?text=' + waMsg + '" target="_blank" class="contact-btn btn-wa">💬 WhatsApp</a></div>' : '';
+      return '<div class="order-card status-' + o.status + '" id="card-' + o.id + '"><div class="card-top"><div class="card-row1"><div class="card-left"><span class="type-pill ' + typeClass + '">' + o.order_type + '</span><span class="order-name">' + o.order_name + '</span></div><span class="status-badge sb-' + o.status + '">' + statusLabel + '</span></div>' + amountChip + '<div class="customer-name">' + (o.customer_name || '—') + '</div><div class="info-row"><span class="ic">📍</span><span>' + (o.address || '—') + '</span></div><div class="info-row"><span class="ic">📞</span><span>' + (o.phone || '—') + '</span></div>' + contactRow + '</div><div class="status-actions">' + (o.status !== 'picked_up' ? '<button class="sa-btn sa-pickup" onclick="updateStatus(\'' + o.id + '\',\'picked_up\',\'' + o.shopify_id + '\',\'' + o.order_type + '\')">📦 Picked Up</button>' : '<div></div>') + (o.status !== 'delivered' ? '<button class="sa-btn sa-delivered" onclick="updateStatus(\'' + o.id + '\',\'delivered\',\'' + o.shopify_id + '\',\'' + o.order_type + '\')">✅ Delivered</button>' : '<div></div>') + (o.status !== 'no_answer' ? '<button class="sa-btn sa-noanswer" onclick="updateStatus(\'' + o.id + '\',\'no_answer\',\'' + o.shopify_id + '\',\'' + o.order_type + '\')">📵 No Answer</button>' : '<div></div>') + (o.status !== 'pending' ? '<button class="sa-btn sa-reset" onclick="updateStatus(\'' + o.id + '\',\'pending\',\'' + o.shopify_id + '\',\'' + o.order_type + '\')">↩ Reset</button>' : '<div></div>') + '</div></div>';
     }).join('');
   }
-
   async function updateStatus(id, status, shopifyId, orderType) {
-    // Optimistic UI update
-    const d = allDeliveries.find(x => x.id === id);
-    if (d) d.status = status;
-    renderCards();
-
+    const o = allOrders.find(x => x.id === id);
+    const prev = o ? o.status : null;
+    if (o) o.status = status;
+    renderOrders(); updateCountBadge();
     try {
-      const res = await fetch('/api/deliveries/status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status, shopifyId, orderType }),
-      });
+      const res = await fetch('/api/deliveries/status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status, shopifyId, orderType }) });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
-      const labels = { picked_up: '📦 Picked up!', delivered: '✅ Delivered!', no_answer: '📵 No answer marked', pending: '↩ Reset to pending' };
-      showToast(labels[status] || status, 'success');
+      const msgs = { picked_up: 'Picked Up — Shopify fulfilled!', delivered: 'Marked as Delivered', no_answer: 'Marked as No Answer', pending: 'Reset to Pending' };
+      showToast(msgs[status] || status, 'success');
     } catch (err) {
-      // Revert on error
-      if (d) d.status = d._prevStatus || 'pending';
-      renderCards();
-      showToast('❌ ' + err.message, 'error');
+      if (o) o.status = prev;
+      renderOrders(); updateCountBadge();
+      showToast('Error: ' + err.message, 'error');
     }
   }
-
-  function showToast(msg, type = '') {
+  function showToast(msg, type) {
     const toast = document.getElementById('toast');
     toast.textContent = msg;
-    toast.className = 'toast show ' + type;
+    toast.className = 'toast show ' + (type || '');
     clearTimeout(toast._timer);
-    toast._timer = setTimeout(() => { toast.className = 'toast'; }, 3000);
+    toast._timer = setTimeout(() => { toast.className = 'toast'; }, 3500);
   }
-
-  // Init
-  loadDeliveries();
-  // Auto-refresh every 30 seconds
-  setInterval(loadDeliveries, 30000);
+  loadOrders();
+  setInterval(loadOrders, 30000);
 </script>
 </body>
 </html>
