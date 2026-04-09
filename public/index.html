@@ -1064,40 +1064,64 @@
   async function assignDriver(idx) {
     const order = ordersData[idx];
     const btn = document.getElementById(`btn-driver-${idx}`);
-    if (btn.classList.contains('assigned')) {
-      showToast(`${order.name} is already in the driver queue.`, 'info');
-      return;
-    }
-    btn.disabled = true;
-    btn.innerHTML = '<span class="btn-icon">⏳</span>Sending...';
-    try {
-      const res = await fetch('/api/assign-driver', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderName: order.name,
-          shopifyId: order.shopifyId,
-          customerName: order.customerName,
-          address: order.address,
-          phone: order.phone,
-          total: order.total,
-          isExchange: order.isExchange,
-          orderType: order.isExchange ? 'EXCHANGE' : 'ORDER',
-        }),
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error);
-      if (data.alreadyAssigned) {
-        showToast(`${order.name} is already in the driver queue.`, 'info');
-      } else {
-        showToast(`${order.name} sent to driver! 🚗`, 'success');
+    const isAssigned = btn.classList.contains('assigned');
+
+    if (isAssigned) {
+      // UNASSIGN
+      if (!confirm(`Remove ${order.name} from the driver queue?`)) return;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="btn-icon">⏳</span>Removing...';
+      try {
+        const res = await fetch('/api/unassign-driver', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderName: order.name }),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        showToast(`${order.name} removed from driver queue.`, 'info');
+        btn.classList.remove('assigned');
+        btn.innerHTML = '<span class="btn-icon">🚗</span>Driver';
+        btn.disabled = false;
+      } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<span class="btn-icon">✅</span>Assigned';
       }
-      btn.classList.add('assigned');
-      btn.innerHTML = '<span class="btn-icon">✅</span>Assigned';
-    } catch (err) {
-      showToast('❌ ' + err.message, 'error');
-      btn.disabled = false;
-      btn.innerHTML = '<span class="btn-icon">🚗</span>Driver';
+    } else {
+      // ASSIGN
+      btn.disabled = true;
+      btn.innerHTML = '<span class="btn-icon">⏳</span>Sending...';
+      try {
+        const res = await fetch('/api/assign-driver', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderName: order.name,
+            shopifyId: order.shopifyId,
+            customerName: order.customerName,
+            address: order.address,
+            phone: order.phone,
+            total: order.total,
+            isExchange: order.isExchange,
+            orderType: order.isExchange ? 'EXCHANGE' : 'ORDER',
+          }),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        if (data.alreadyAssigned) {
+          showToast(`${order.name} is already in the driver queue.`, 'info');
+        } else {
+          showToast(`${order.name} sent to driver! 🚗`, 'success');
+        }
+        btn.classList.add('assigned');
+        btn.innerHTML = '<span class="btn-icon">✅</span>Assigned';
+        btn.disabled = false;
+      } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<span class="btn-icon">🚗</span>Driver';
+      }
     }
   }
 

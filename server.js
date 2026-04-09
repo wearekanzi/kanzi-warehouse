@@ -166,6 +166,18 @@ app.get('/api/orders', async (req, res) => {
                   currencyCode
                 }
               }
+              currentTotalPriceSet {
+                shopMoney {
+                  amount
+                  currencyCode
+                }
+              }
+              totalReceivedSet {
+                shopMoney {
+                  amount
+                  currencyCode
+                }
+              }
               tags
             }
           }
@@ -212,7 +224,14 @@ app.get('/api/orders', async (req, res) => {
           imageUrl: li.node.variant?.image?.url || '',
           storageLocation: li.node.variant?.product?.metafield?.value || '',
         })),
-        total: `${o.totalPriceSet.shopMoney.amount} ${o.totalPriceSet.shopMoney.currencyCode}`,
+        total: (() => {
+          // Outstanding balance = current total - amount already paid
+          const currentTotal = parseFloat(o.currentTotalPriceSet?.shopMoney?.amount || o.totalPriceSet.shopMoney.amount);
+          const totalReceived = parseFloat(o.totalReceivedSet?.shopMoney?.amount || 0);
+          const outstanding = Math.max(0, currentTotal - totalReceived);
+          const currency = o.totalPriceSet.shopMoney.currencyCode;
+          return `${outstanding.toFixed(3)} ${currency}`;
+        })(),
       };
     });
 
@@ -384,6 +403,19 @@ app.post('/api/assign-driver', async (req, res) => {
     res.json({ success: true, alreadyAssigned: false });
   } catch (err) {
     console.error('Assign driver error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── API: UNASSIGN ORDER FROM DRIVER ────────────────────────────────────────
+app.post('/api/unassign-driver', async (req, res) => {
+  try {
+    const { orderName } = req.body;
+    if (!orderName) return res.status(400).json({ success: false, error: 'orderName required' });
+    await supabase('DELETE', `/deliveries?order_name=eq.${encodeURIComponent(orderName)}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Unassign driver error:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
