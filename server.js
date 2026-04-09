@@ -167,14 +167,6 @@ app.get('/api/orders', async (req, res) => {
                 }
               }
               tags
-              returns(first: 5) {
-                edges {
-                  node {
-                    id
-                    status
-                  }
-                }
-              }
             }
           }
         }
@@ -194,9 +186,9 @@ app.get('/api/orders', async (req, res) => {
       // Unfulfilled line items
       const unfulfilledItems = o.lineItems.edges.filter(li => li.node.fulfillableQuantity > 0);
 
-      // Order is an exchange if it has an open return AND unfulfilled items (exchange adds new items)
-      const hasOpenReturn = (o.returns?.edges || []).some(r => r.node.status === 'OPEN');
-      const isExchange = hasOpenReturn && unfulfilledItems.length > 0;
+      // Order is an exchange if tagged with 'exchange' (case-insensitive)
+      const tags = (o.tags || []).map(t => t.toLowerCase());
+      const isExchange = tags.some(t => t.includes('exchange'));
 
       return {
         id: o.id,
