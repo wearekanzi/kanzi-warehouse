@@ -224,14 +224,10 @@ app.get('/api/orders', async (req, res) => {
           imageUrl: li.node.variant?.image?.url || '',
           storageLocation: li.node.variant?.product?.metafield?.value || '',
         })),
-        total: (() => {
-          // Outstanding balance = current total - amount already paid
-          const currentTotal = parseFloat(o.currentTotalPriceSet?.shopMoney?.amount || o.totalPriceSet.shopMoney.amount);
-          const totalReceived = parseFloat(o.totalReceivedSet?.shopMoney?.amount || 0);
-          const outstanding = Math.max(0, currentTotal - totalReceived);
-          const currency = o.totalPriceSet.shopMoney.currencyCode;
-          return `${outstanding.toFixed(3)} ${currency}`;
-        })(),
+        // currentTotal = actual order value (adjusted for exchanges/refunds)
+        // totalOutstanding = what the customer still owes (what driver should collect)
+        total: `${parseFloat(o.currentTotalPriceSet?.shopMoney?.amount || o.totalPriceSet.shopMoney.amount).toFixed(3)} ${o.totalPriceSet.shopMoney.currencyCode}`,
+        amountToCollect: `${parseFloat(o.totalOutstandingSet?.shopMoney?.amount || 0).toFixed(3)} ${o.totalPriceSet.shopMoney.currencyCode}`,
       };
     });
 
@@ -372,7 +368,7 @@ app.get('/api/deliveries', async (req, res) => {
 // ─── API: ASSIGN ORDER TO DRIVER ────────────────────────────────────────────
 app.post('/api/assign-driver', async (req, res) => {
   try {
-    const { orderName, shopifyId, customerName, address, phone, total, isExchange, orderType } = req.body;
+    const { orderName, shopifyId, customerName, address, phone, total, amountToCollect, isExchange, orderType } = req.body;
     if (!orderName) return res.status(400).json({ success: false, error: 'orderName required' });
 
     // Check if already in delivery queue
@@ -381,8 +377,10 @@ app.post('/api/assign-driver', async (req, res) => {
       return res.json({ success: true, alreadyAssigned: true });
     }
 
-    // Parse amount — exchange orders with zero balance have nothing to collect/return
-    const amountParts = (total || '').split(' ');
+    // Use amountToCollect (outstanding balance) for what the driver needs to collect
+    // If amountToCollect is provided, use it; otherwise fall back to total
+    const collectSource = amountToCollect || total || '';
+    const amountParts = collectSource.split(' ');
     const rawAmount = parseFloat(amountParts[0]) || 0;
     const amount = rawAmount > 0 ? String(rawAmount) : '';
     const amount_type = rawAmount > 0 ? 'collect' : null;
