@@ -166,18 +166,12 @@ app.get('/api/orders', async (req, res) => {
                   currencyCode
                 }
               }
-              returns(first: 10) {
+              tags
+              returns(first: 5) {
                 edges {
                   node {
-                    exchangeLineItems(first: 20) {
-                      edges {
-                        node {
-                          lineItems {
-                            id
-                          }
-                        }
-                      }
-                    }
+                    id
+                    status
                   }
                 }
               }
@@ -187,28 +181,22 @@ app.get('/api/orders', async (req, res) => {
       }
     `);
 
+    if (!data.data) {
+      const errs = (data.errors || []).map(e => e.message).join(', ');
+      throw new Error('Shopify API error: ' + errs);
+    }
+
     const orders = data.data.orders.edges.map(e => {
       const o = e.node;
       const addr = o.shippingAddress || {};
       const customer = o.customer || {};
 
-      // Collect all line item IDs that are exchange items
-      const exchangeLineItemIds = new Set();
-      (o.returns?.edges || []).forEach(ret => {
-        (ret.node.exchangeLineItems?.edges || []).forEach(eli => {
-          (eli.node.lineItems || []).forEach(li => {
-            exchangeLineItemIds.add(li.id);
-          });
-        });
-      });
-
       // Unfulfilled line items
       const unfulfilledItems = o.lineItems.edges.filter(li => li.node.fulfillableQuantity > 0);
 
-      // Order is an exchange if it has exchange items AND all unfulfilled items are exchange items
-      const isExchange = exchangeLineItemIds.size > 0 &&
-        unfulfilledItems.length > 0 &&
-        unfulfilledItems.every(li => exchangeLineItemIds.has(li.node.id));
+      // Order is an exchange if it has an open return AND unfulfilled items (exchange adds new items)
+      const hasOpenReturn = (o.returns?.edges || []).some(r => r.node.status === 'OPEN');
+      const isExchange = hasOpenReturn && unfulfilledItems.length > 0;
 
       return {
         id: o.id,
