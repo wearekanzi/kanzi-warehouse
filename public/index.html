@@ -3,479 +3,571 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Warehouse Orders</title>
+  <title>Kanzi Warehouse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #f0f2f5;
-      color: #1a1a2e;
-      min-height: 100vh;
+    :root {
+      --navy: #0f172a;
+      --navy2: #1e293b;
+      --blue: #3b82f6;
+      --blue-dark: #2563eb;
+      --green: #10b981;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --purple: #8b5cf6;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-400: #94a3b8;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --white: #ffffff;
+      --radius: 14px;
+      --radius-sm: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.05);
+      --shadow-lg: 0 4px 20px rgba(0,0,0,0.12);
     }
 
+    body {
+      font-family: 'Montserrat', -apple-system, sans-serif;
+      background: var(--gray-50);
+      color: var(--navy);
+      min-height: 100vh;
+      padding-bottom: 60px;
+    }
+
+    /* ── HEADER ── */
     header {
-      background: #1a1a2e;
+      background: var(--navy);
       color: white;
-      padding: 16px 20px;
+      padding: 0 20px;
+      height: 60px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: sticky;
       top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      z-index: 200;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
     }
-
-    header h1 { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
-
-    .badge {
-      background: #e63946;
-      color: white;
-      border-radius: 12px;
-      padding: 3px 10px;
-      font-size: 13px;
-      font-weight: 600;
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-
-    .print-history-badge {
-      background: #7c3aed;
-      color: white;
-      border-radius: 10px;
-      padding: 2px 8px;
-      font-size: 11px;
-      font-weight: 700;
+    .header-brand .logo {
+      width: 32px;
+      height: 32px;
+      background: var(--blue);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .header-brand h1 {
+      font-size: 16px;
+      font-weight: 800;
       letter-spacing: 0.3px;
-      white-space: nowrap;
     }
+    .header-brand h1 span { color: var(--blue); }
+
+    .header-right { display: flex; align-items: center; gap: 8px; }
 
     .refresh-btn {
-      background: #2563eb;
+      background: rgba(255,255,255,0.1);
       color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 16px;
-      font-size: 14px;
-      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius-sm);
+      padding: 7px 14px;
+      font-size: 13px;
       font-weight: 600;
-      transition: background 0.2s;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      transition: all 0.2s;
     }
-    .refresh-btn:hover { background: #1d4ed8; }
-    .refresh-btn:disabled { background: #6b7280; cursor: not-allowed; }
+    .refresh-btn:hover { background: rgba(255,255,255,0.18); }
+    .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* ── Bulk action bar ── */
+    /* ── NAV TABS ── */
+    .nav-tabs {
+      background: var(--navy2);
+      display: flex;
+      padding: 0 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .nav-tab {
+      background: none;
+      border: none;
+      color: var(--gray-400);
+      padding: 14px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .nav-tab:hover { color: white; }
+    .nav-tab.active { color: white; border-bottom-color: var(--blue); }
+
+    .tab-badge {
+      background: var(--red);
+      color: white;
+      border-radius: 10px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 20px;
+      text-align: center;
+    }
+    .tab-badge.green { background: var(--green); }
+
+    /* ── BULK BAR ── */
     .bulk-bar {
       position: sticky;
-      top: 57px;
-      z-index: 99;
-      background: #1e3a5f;
+      top: 60px;
+      z-index: 190;
+      background: #1d4ed8;
       color: white;
       padding: 10px 20px;
       display: none;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 8px rgba(29,78,216,0.4);
     }
     .bulk-bar.visible { display: flex; }
-    .bulk-bar span { font-size: 14px; font-weight: 600; flex: 1; }
-
+    .bulk-bar-label { font-size: 13px; font-weight: 700; flex: 1; }
     .bulk-btn {
       border: none;
       border-radius: 7px;
-      padding: 8px 14px;
-      font-size: 13px;
-      font-weight: 600;
+      padding: 7px 13px;
+      font-size: 12px;
+      font-weight: 700;
       cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
       transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
-    .bulk-btn-label   { background: #e2e8f0; color: #1a1a2e; }
-    .bulk-btn-invoice { background: #2563eb; color: white; }
-    .bulk-btn-packing { background: #059669; color: white; }
-    .bulk-btn-all     { background: #e63946; color: white; }
     .bulk-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .bulk-btn-label   { background: rgba(255,255,255,0.2); color: white; }
+    .bulk-btn-invoice { background: rgba(255,255,255,0.2); color: white; }
+    .bulk-btn-packing { background: rgba(255,255,255,0.2); color: white; }
+    .bulk-btn-all     { background: white; color: #1d4ed8; }
 
-    /* ── Select all row ── */
-    .select-all-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 4px 4px;
-      font-size: 13px;
-      color: #6b7280;
-      font-weight: 600;
-      cursor: pointer;
-      user-select: none;
-    }
-    .select-all-row input[type=checkbox] { width: 17px; height: 17px; cursor: pointer; accent-color: #2563eb; }
-
-    .container {
-      max-width: 900px;
+    /* ── CONTAINER ── */
+    .page-container {
+      max-width: 860px;
       margin: 0 auto;
       padding: 20px 16px;
     }
 
-    .loading {
-      text-align: center;
-      padding: 60px 20px;
-      color: #6b7280;
-      font-size: 16px;
-    }
+    /* ── SECTION VISIBILITY ── */
+    .section { display: none; }
+    .section.active { display: block; }
 
+    /* ── LOADING / EMPTY ── */
+    .loading-state, .empty-state {
+      text-align: center;
+      padding: 70px 20px;
+      color: var(--gray-400);
+    }
     .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #e5e7eb;
-      border-top-color: #2563eb;
+      width: 38px; height: 38px;
+      border: 3px solid var(--gray-200);
+      border-top-color: var(--blue);
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 14px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p, .loading-state p { font-size: 15px; font-weight: 500; }
 
-    .empty {
-      text-align: center;
-      padding: 60px 20px;
-      color: #6b7280;
-    }
-    .empty .icon { font-size: 48px; margin-bottom: 12px; }
-    .empty p { font-size: 16px; }
-
-    .order-card {
-      background: white;
-      border-radius: 12px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      overflow: hidden;
-      transition: box-shadow 0.2s, outline 0.15s;
-    }
-    .order-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
-    .order-card.selected { outline: 2px solid #2563eb; }
-
-    .order-header {
-      padding: 16px 20px;
+    /* ── SELECT ALL ROW ── */
+    .select-all-row {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid #f3f4f6;
+      gap: 10px;
+      padding: 8px 4px 12px;
+      font-size: 13px;
+      color: var(--gray-600);
+      font-weight: 600;
       cursor: pointer;
       user-select: none;
     }
+    .select-all-row input[type=checkbox] {
+      width: 17px; height: 17px;
+      cursor: pointer;
+      accent-color: var(--blue);
+    }
 
+    /* ── ORDER CARD ── */
+    .order-card {
+      background: white;
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: box-shadow 0.2s, outline 0.15s;
+    }
+    .order-card:hover { box-shadow: var(--shadow-lg); }
+    .order-card.selected { outline: 2px solid var(--blue); }
+
+    .order-header {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      gap: 10px;
+    }
     .order-header-left {
       display: flex;
       align-items: center;
       gap: 10px;
+      flex: 1;
+      min-width: 0;
     }
-
-    /* checkbox in header */
     .order-check {
-      width: 18px;
-      height: 18px;
+      width: 17px; height: 17px;
       cursor: pointer;
-      accent-color: #2563eb;
+      accent-color: var(--blue);
+      flex-shrink: 0;
+    }
+    .order-number {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--navy);
+      white-space: nowrap;
+    }
+    .order-type-pill {
+      border-radius: 6px;
+      padding: 3px 9px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .type-order    { background: #dbeafe; color: #1d4ed8; }
+    .type-exchange { background: #fef3c7; color: #92400e; }
+    .type-return   { background: #fce7f3; color: #9d174d; }
+    .type-unfulfilled { background: #f1f5f9; color: #475569; }
+
+    .print-badge {
+      background: #ede9fe;
+      color: #6d28d9;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
       flex-shrink: 0;
     }
 
-    .order-number { font-size: 18px; font-weight: 700; color: #1a1a2e; }
-
-    .order-status {
-      background: #fef3c7;
-      color: #92400e;
-      border-radius: 6px;
-      padding: 3px 10px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
+    .order-header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
     }
-
-    .order-date { font-size: 13px; color: #9ca3af; }
-
-    .chevron { font-size: 18px; color: #9ca3af; transition: transform 0.2s; }
+    .order-date { font-size: 12px; color: var(--gray-400); font-weight: 500; }
+    .chevron { font-size: 14px; color: var(--gray-400); transition: transform 0.2s; }
     .order-card.open .chevron { transform: rotate(180deg); }
 
-    .order-body { display: none; padding: 16px 20px; }
+    .order-body { display: none; padding: 0 18px 18px; border-top: 1px solid var(--gray-100); }
     .order-card.open .order-body { display: block; }
 
+    /* ── INFO GRID ── */
     .info-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
-      margin-bottom: 16px;
+      padding: 14px 0 12px;
     }
-    @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } }
-
+    @media (max-width: 500px) { .info-grid { grid-template-columns: 1fr; } }
     .info-item label {
-      font-size: 11px;
-      font-weight: 600;
-      color: #9ca3af;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--gray-400);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
       display: block;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
-    .info-item span { font-size: 14px; color: #1a1a2e; font-weight: 500; }
+    .info-item span { font-size: 14px; color: var(--navy); font-weight: 600; }
 
+    /* ── ITEMS TABLE ── */
     .items-table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 16px;
-      font-size: 14px;
+      font-size: 13px;
+      margin-bottom: 4px;
     }
     .items-table th {
       text-align: left;
       padding: 8px 10px;
-      background: #f9fafb;
-      color: #6b7280;
-      font-size: 12px;
-      font-weight: 600;
+      background: var(--gray-50);
+      color: var(--gray-400);
+      font-size: 10px;
+      font-weight: 700;
       text-transform: uppercase;
-      border-bottom: 1px solid #e5e7eb;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--gray-200);
     }
     .items-table td {
-      padding: 10px 10px;
-      border-bottom: 1px solid #f3f4f6;
-      color: #374151;
+      padding: 10px;
+      border-bottom: 1px solid var(--gray-100);
+      color: var(--gray-700);
+      font-weight: 500;
     }
     .items-table tr:last-child td { border-bottom: none; }
+    .items-table .qty-cell {
+      text-align: center;
+      font-weight: 800;
+      color: var(--navy);
+    }
 
+    .total-row {
+      text-align: right;
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--navy);
+      padding: 10px 10px 14px;
+    }
+
+    /* ── ACTION BUTTONS ── */
     .action-buttons {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+      grid-template-columns: repeat(5, 1fr);
       gap: 8px;
-      margin-top: 16px;
     }
-    @media (max-width: 650px) { .action-buttons { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .action-buttons { grid-template-columns: 1fr 1fr; } }
 
     .btn {
       border: none;
-      border-radius: 8px;
-      padding: 12px 8px;
-      font-size: 13px;
-      font-weight: 600;
+      border-radius: 10px;
+      padding: 11px 6px;
+      font-size: 12px;
+      font-weight: 700;
       cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
       transition: all 0.2s;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
+      gap: 5px;
       line-height: 1.2;
     }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn:active:not(:disabled) { transform: scale(0.96); }
+    .btn-icon { font-size: 19px; }
 
-    .btn-label   { background: #1a1a2e; color: white; }
-    .btn-label:hover:not(:disabled)   { background: #2d2d4e; }
-
-    .btn-invoice { background: #2563eb; color: white; }
-    .btn-invoice:hover:not(:disabled) { background: #1d4ed8; }
-
-    .btn-packing { background: #059669; color: white; }
-    .btn-packing:hover:not(:disabled) { background: #047857; }
-
+    .btn-label    { background: var(--navy); color: white; }
+    .btn-label:hover:not(:disabled)    { background: var(--navy2); }
+    .btn-invoice  { background: var(--blue-dark); color: white; }
+    .btn-invoice:hover:not(:disabled)  { background: #1d4ed8; }
+    .btn-packing  { background: var(--green); color: white; }
+    .btn-packing:hover:not(:disabled)  { background: #059669; }
     .btn-printall { background: #e63946; color: white; }
     .btn-printall:hover:not(:disabled) { background: #c81d2a; }
+    .btn-archive  { background: var(--gray-100); color: var(--gray-600); border: 1px solid var(--gray-200); }
+    .btn-archive:hover:not(:disabled)  { background: #fee2e2; color: var(--red); border-color: #fca5a5; }
 
-    .btn-archive { background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }
-    .btn-archive:hover:not(:disabled) { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+    /* ── DELIVERY FILTER PILLS ── */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      border: 1.5px solid var(--gray-200);
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      transition: all 0.2s;
+      background: white;
+      color: var(--gray-600);
+    }
+    .pill:hover { border-color: var(--blue); color: var(--blue); }
+    .pill.active { background: var(--navy); border-color: var(--navy); color: white; }
 
-    .btn-icon { font-size: 20px; }
+    /* ── DELIVERY CARD ── */
+    .delivery-card {
+      background: white;
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+    .delivery-card:hover { box-shadow: var(--shadow-lg); }
 
+    .dc-top {
+      padding: 14px 18px 12px;
+    }
+    .dc-row1 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .dc-left { display: flex; align-items: center; gap: 8px; }
+    .dc-order-name { font-size: 18px; font-weight: 800; color: var(--navy); }
+
+    .status-pill {
+      border-radius: 8px;
+      padding: 4px 11px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .sp-pending    { background: #fef3c7; color: #92400e; }
+    .sp-picked_up  { background: #dbeafe; color: #1d4ed8; }
+    .sp-delivered  { background: #d1fae5; color: #065f46; }
+    .sp-no_answer  { background: #fee2e2; color: #991b1b; }
+
+    .amount-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      color: #166534;
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .amount-chip.refund {
+      background: #fef2f2;
+      border-color: #fca5a5;
+      color: #991b1b;
+    }
+
+    .dc-customer { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+    .dc-info-line {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      font-size: 13px;
+      color: var(--gray-600);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .dc-info-line .ic { flex-shrink: 0; font-size: 14px; }
+
+    .dc-actions {
+      display: flex;
+      gap: 8px;
+      padding: 10px 18px 14px;
+      border-top: 1px solid var(--gray-100);
+      flex-wrap: wrap;
+    }
+    .da-btn {
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .da-btn:active { transform: scale(0.96); }
+    .da-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .da-pickup    { background: var(--blue-dark); color: white; }
+    .da-delivered { background: var(--green); color: white; }
+    .da-noanswer  { background: var(--amber); color: white; }
+    .da-reset     { background: var(--gray-100); color: var(--gray-600); }
+    .da-whatsapp  { background: #25d366; color: white; }
+
+    /* ── TOAST ── */
     .toast {
       position: fixed;
       bottom: 24px;
       left: 50%;
       transform: translateX(-50%) translateY(100px);
-      background: #1a1a2e;
+      background: var(--navy);
       color: white;
-      padding: 12px 24px;
+      padding: 12px 22px;
       border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 700;
       z-index: 9999;
       transition: transform 0.3s ease;
       max-width: 90vw;
       text-align: center;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      box-shadow: var(--shadow-lg);
+      font-family: 'Montserrat', sans-serif;
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
-    .toast.success { background: #059669; }
-    .toast.error   { background: #dc2626; }
-    .toast.info    { background: #2563eb; }
-
-    .total-row {
-      display: flex;
-      justify-content: flex-end;
-      font-weight: 700;
-      font-size: 15px;
-      color: #1a1a2e;
-      padding: 8px 10px 0;
-    }
+    .toast.success { background: var(--green); }
+    .toast.error   { background: var(--red); }
+    .toast.info    { background: var(--blue-dark); }
   </style>
 </head>
 <body>
 
+<!-- HEADER -->
 <header>
-  <div style="display:flex;align-items:center;gap:12px;">
-    <h1>📦 Kanzi Warehouse</h1>
+  <div class="header-brand">
+    <div class="logo">📦</div>
+    <h1>Kanzi <span>Warehouse</span></h1>
   </div>
-  <div style="display:flex;gap:8px;">
-    <button class="nav-tab active" id="tab-warehouse" onclick="switchTab('warehouse')">📦 Warehouse <span class="badge" id="order-count" style="margin-left:4px;">0</span></button>
-    <button class="nav-tab" id="tab-delivery" onclick="switchTab('delivery')">🚗 Delivery <span class="badge" id="delivery-count" style="margin-left:4px;background:#059669;">0</span></button>
+  <div class="header-right">
+    <button class="refresh-btn" id="refresh-btn" onclick="refreshCurrent()">↻ Refresh</button>
   </div>
-  <button class="refresh-btn" id="refresh-btn" onclick="refreshCurrent()">↻ Refresh</button>
 </header>
 
-<!-- Nav tab styles -->
-<style>
-  .nav-tab {
-    background: rgba(255,255,255,0.15);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .nav-tab.active { background: white; color: #1a1a2e; }
-  .nav-tab:hover:not(.active) { background: rgba(255,255,255,0.25); }
+<!-- NAV TABS -->
+<div class="nav-tabs">
+  <button class="nav-tab active" id="tab-warehouse" onclick="switchTab('warehouse')">
+    📦 Warehouse <span class="tab-badge" id="order-count">0</span>
+  </button>
+  <button class="nav-tab" id="tab-delivery" onclick="switchTab('delivery')">
+    🚗 Delivery <span class="tab-badge green" id="delivery-count">0</span>
+  </button>
+</div>
 
-  /* Delivery tab */
-  .delivery-container { max-width: 900px; margin: 0 auto; padding: 20px 16px; display: none; }
-  .delivery-container.active { display: block; }
-  .warehouse-container { display: block; }
-  .warehouse-container.hidden { display: none; }
-
-  .filter-pills {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-  }
-  .pill {
-    border: none;
-    border-radius: 20px;
-    padding: 6px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: #e5e7eb;
-    color: #374151;
-  }
-  .pill.active { background: #1a1a2e; color: white; }
-
-  .delivery-card {
-    background: white;
-    border-radius: 12px;
-    margin-bottom: 12px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    overflow: hidden;
-  }
-  .delivery-header {
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-  }
-  .delivery-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-  .order-type-badge {
-    border-radius: 6px;
-    padding: 3px 8px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .type-order    { background: #dbeafe; color: #1d4ed8; }
-  .type-exchange { background: #fef3c7; color: #92400e; }
-  .type-return   { background: #fce7f3; color: #9d174d; }
-
-  .delivery-status {
-    border-radius: 6px;
-    padding: 3px 10px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .status-pending    { background: #fef3c7; color: #92400e; }
-  .status-picked_up  { background: #dbeafe; color: #1d4ed8; }
-  .status-delivered  { background: #d1fae5; color: #065f46; }
-  .status-no_answer  { background: #fee2e2; color: #991b1b; }
-
-  .delivery-info { font-size: 13px; color: #6b7280; margin-top: 6px; }
-  .delivery-info strong { color: #1a1a2e; }
-
-  .delivery-actions {
-    display: flex;
-    gap: 8px;
-    padding: 10px 16px;
-    border-top: 1px solid #f3f4f6;
-    flex-wrap: wrap;
-  }
-  .d-btn {
-    border: none;
-    border-radius: 7px;
-    padding: 7px 12px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .d-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .d-btn-pickup    { background: #2563eb; color: white; }
-  .d-btn-delivered { background: #059669; color: white; }
-  .d-btn-noanswer  { background: #f59e0b; color: white; }
-  .d-btn-pending   { background: #6b7280; color: white; }
-  .d-btn-whatsapp  { background: #25d366; color: white; }
-  .amount-badge {
-    background: #f0fdf4;
-    border: 1px solid #86efac;
-    color: #166534;
-    border-radius: 6px;
-    padding: 3px 10px;
-    font-size: 12px;
-    font-weight: 700;
-    white-space: nowrap;
-  }
-  .amount-badge.refund {
-    background: #fef2f2;
-    border-color: #fca5a5;
-    color: #991b1b;
-  }
-</style>
-
-<!-- Bulk action bar (appears when orders are selected) -->
+<!-- BULK BAR -->
 <div class="bulk-bar" id="bulk-bar">
-  <span id="bulk-label">0 orders selected</span>
-  <button class="bulk-btn bulk-btn-label"   onclick="bulkPrint('label')"   id="bulk-btn-label">🏷️ Print Labels</button>
-  <button class="bulk-btn bulk-btn-invoice" onclick="bulkPrint('invoice')" id="bulk-btn-invoice">🖨️ Print Invoices</button>
-  <button class="bulk-btn bulk-btn-packing" onclick="bulkPrint('packing')" id="bulk-btn-packing">📋 Print Slips</button>
+  <span class="bulk-bar-label" id="bulk-label">0 selected</span>
+  <button class="bulk-btn bulk-btn-label"   onclick="bulkPrint('label')"   id="bulk-btn-label">🏷️ Labels</button>
+  <button class="bulk-btn bulk-btn-invoice" onclick="bulkPrint('invoice')" id="bulk-btn-invoice">🖨️ Invoices</button>
+  <button class="bulk-btn bulk-btn-packing" onclick="bulkPrint('packing')" id="bulk-btn-packing">📋 Slips</button>
   <button class="bulk-btn bulk-btn-all"     onclick="bulkPrint('all')"     id="bulk-btn-all">⚡ Print All</button>
 </div>
 
-<div class="container warehouse-container" id="warehouse-section">
+<!-- WAREHOUSE SECTION -->
+<div class="page-container section active" id="warehouse-section">
   <div id="orders-container">
-    <div class="loading">
-      <div class="spinner"></div>
-      <p>Loading orders...</p>
-    </div>
+    <div class="loading-state"><div class="spinner"></div><p>Loading orders...</p></div>
   </div>
 </div>
 
-<div class="delivery-container" id="delivery-section">
-  <div class="filter-pills">
+<!-- DELIVERY SECTION -->
+<div class="page-container section" id="delivery-section">
+  <div class="filter-bar">
     <button class="pill active" id="pill-all"       onclick="setDeliveryFilter('all')">All</button>
     <button class="pill"        id="pill-pending"   onclick="setDeliveryFilter('pending')">Pending</button>
     <button class="pill"        id="pill-picked_up" onclick="setDeliveryFilter('picked_up')">Picked Up</button>
@@ -483,7 +575,7 @@
     <button class="pill"        id="pill-no_answer" onclick="setDeliveryFilter('no_answer')">No Answer</button>
   </div>
   <div id="delivery-container">
-    <div class="loading"><div class="spinner"></div><p>Loading deliveries...</p></div>
+    <div class="loading-state"><div class="spinner"></div><p>Loading deliveries...</p></div>
   </div>
 </div>
 
@@ -502,9 +594,10 @@
     currentTab = tab;
     document.getElementById('tab-warehouse').classList.toggle('active', tab === 'warehouse');
     document.getElementById('tab-delivery').classList.toggle('active', tab === 'delivery');
-    document.getElementById('warehouse-section').classList.toggle('hidden', tab !== 'warehouse');
+    document.getElementById('warehouse-section').classList.toggle('active', tab === 'warehouse');
     document.getElementById('delivery-section').classList.toggle('active', tab === 'delivery');
-    document.getElementById('bulk-bar').style.display = tab !== 'warehouse' ? 'none' : '';
+    const bulkBar = document.getElementById('bulk-bar');
+    if (tab !== 'warehouse') { bulkBar.classList.remove('visible'); }
     if (tab === 'delivery') loadDeliveries();
   }
 
@@ -519,25 +612,24 @@
     btn.disabled = true;
     btn.textContent = '↻ Loading...';
     document.getElementById('delivery-container').innerHTML =
-      '<div class="loading"><div class="spinner"></div><p>Loading deliveries...</p></div>';
+      '<div class="loading-state"><div class="spinner"></div><p>Loading deliveries...</p></div>';
     try {
       const res = await fetch('/api/deliveries');
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
-      deliveriesData = data.deliveries;
-      const pending = deliveriesData.filter(d => d.status !== 'delivered').length;
+      deliveriesData = data.deliveries || [];
+      const pending = deliveriesData.filter(d => d.status === 'pending' || d.status === 'picked_up').length;
       document.getElementById('delivery-count').textContent = pending;
       renderDeliveries();
     } catch (err) {
       document.getElementById('delivery-container').innerHTML =
-        `<div class="empty"><div class="icon">⚠️</div><p>Failed to load: ${err.message}</p></div>`;
+        `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Failed to load: ${err.message}</p></div>`;
     } finally {
       btn.disabled = false;
       btn.textContent = '↻ Refresh';
     }
   }
 
-  // ── Filter pills ──────────────────────────────────────────────────────────────
   function setDeliveryFilter(f) {
     deliveryFilter = f;
     ['all','pending','picked_up','delivered','no_answer'].forEach(id => {
@@ -546,7 +638,6 @@
     renderDeliveries();
   }
 
-  // ── Render deliveries ─────────────────────────────────────────────────────────
   function renderDeliveries() {
     const container = document.getElementById('delivery-container');
     const filtered = deliveryFilter === 'all'
@@ -554,7 +645,7 @@
       : deliveriesData.filter(d => d.status === deliveryFilter);
 
     if (filtered.length === 0) {
-      container.innerHTML = '<div class="empty"><div class="icon">🚗</div><p>No deliveries here.</p></div>';
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">🚗</div><p>No deliveries here.</p></div>';
       return;
     }
 
@@ -562,45 +653,45 @@
       const typeClass = d.order_type === 'EXCHANGE' ? 'type-exchange' : d.order_type === 'RETURN' ? 'type-return' : 'type-order';
       const statusLabel = { pending: 'Pending', picked_up: 'Picked Up', delivered: 'Delivered', no_answer: 'No Answer' }[d.status] || d.status;
       const amountIsRefund = d.amount_type === 'refund';
-      const amountBadge = d.amount
-        ? `<span class="amount-badge ${amountIsRefund ? 'refund' : ''}">${amountIsRefund ? 'Refund' : 'Collect'}: ${d.amount} KWD</span>`
+      const amountChip = d.amount
+        ? `<div class="amount-chip ${amountIsRefund ? 'refund' : ''}">
+            ${amountIsRefund ? '↩ Return' : '💰 Collect'}: <strong>${d.amount} KWD</strong>
+           </div>`
         : '';
-
-      const waMsg = encodeURIComponent(
-        `${d.order_type} #${d.order_name}\n📍 ${d.address || '—'}\n📞 ${d.phone || '—'}\n💰 ${amountIsRefund ? 'Return' : 'Collect'}: ${d.amount || '0'} KWD`
-      );
-      const waLink = d.phone
-        ? `<a href="https://wa.me/${d.phone.replace(/[^0-9]/g,'')}?text=${waMsg}" target="_blank"><button class="d-btn d-btn-whatsapp">💬 WhatsApp</button></a>`
-        : '';
+      const phone = (d.phone || '').replace(/[^0-9+]/g, '');
+      const waMsg = encodeURIComponent(`${d.order_type} ${d.order_name}\n📍 ${d.address || '—'}\n📞 ${d.phone || '—'}\n💰 ${amountIsRefund ? 'Return' : 'Collect'}: ${d.amount || '0'} KWD`);
 
       return `
         <div class="delivery-card" id="dcard-${d.id}">
-          <div class="delivery-header">
-            <div class="delivery-left">
-              <span class="order-type-badge ${typeClass}">${d.order_type}</span>
-              <strong style="font-size:16px;">${d.order_name}</strong>
-              ${amountBadge}
+          <div class="dc-top">
+            <div class="dc-row1">
+              <div class="dc-left">
+                <span class="order-type-pill ${typeClass}">${d.order_type}</span>
+                <span class="dc-order-name">${d.order_name}</span>
+              </div>
+              <span class="status-pill sp-${d.status}">${statusLabel}</span>
             </div>
-            <span class="delivery-status status-${d.status}">${statusLabel}</span>
+            ${amountChip}
+            <div class="dc-customer">${d.customer_name || '—'}</div>
+            <div class="dc-info-line"><span class="ic">📍</span>${d.address || '—'}</div>
+            <div class="dc-info-line"><span class="ic">📞</span>${d.phone || '—'}</div>
           </div>
-          <div style="padding:0 16px 12px;">
-            <div class="delivery-info"><strong>${d.customer_name || '—'}</strong></div>
-            <div class="delivery-info">📍 ${d.address || '—'}</div>
-            <div class="delivery-info">📞 ${d.phone || '—'}</div>
-          </div>
-          <div class="delivery-actions">
-            ${d.status !== 'picked_up'  ? `<button class="d-btn d-btn-pickup"    onclick="updateDeliveryStatus('${d.id}','picked_up','${d.shopify_id}','${d.order_type}')">📦 Picked Up</button>` : ''}
-            ${d.status !== 'delivered'  ? `<button class="d-btn d-btn-delivered" onclick="updateDeliveryStatus('${d.id}','delivered','${d.shopify_id}','${d.order_type}')">✅ Delivered</button>` : ''}
-            ${d.status !== 'no_answer' ? `<button class="d-btn d-btn-noanswer"  onclick="updateDeliveryStatus('${d.id}','no_answer','${d.shopify_id}','${d.order_type}')">📵 No Answer</button>` : ''}
-            ${d.status !== 'pending'   ? `<button class="d-btn d-btn-pending"   onclick="updateDeliveryStatus('${d.id}','pending','${d.shopify_id}','${d.order_type}')">↩ Reset</button>` : ''}
-            ${waLink}
+          <div class="dc-actions">
+            ${d.status !== 'picked_up'  ? `<button class="da-btn da-pickup"    onclick="updateDeliveryStatus('${d.id}','picked_up','${d.shopify_id}','${d.order_type}')">📦 Picked Up</button>` : ''}
+            ${d.status !== 'delivered'  ? `<button class="da-btn da-delivered" onclick="updateDeliveryStatus('${d.id}','delivered','${d.shopify_id}','${d.order_type}')">✅ Delivered</button>` : ''}
+            ${d.status !== 'no_answer'  ? `<button class="da-btn da-noanswer"  onclick="updateDeliveryStatus('${d.id}','no_answer','${d.shopify_id}','${d.order_type}')">📵 No Answer</button>` : ''}
+            ${d.status !== 'pending'    ? `<button class="da-btn da-reset"     onclick="updateDeliveryStatus('${d.id}','pending','${d.shopify_id}','${d.order_type}')">↩ Reset</button>` : ''}
+            ${phone ? `<a href="https://wa.me/${phone.replace('+','')}?text=${waMsg}" target="_blank" style="text-decoration:none;"><button class="da-btn da-whatsapp">💬 WhatsApp</button></a>` : ''}
           </div>
         </div>`;
     }).join('');
   }
 
-  // ── Update delivery status ────────────────────────────────────────────────────
   async function updateDeliveryStatus(id, status, shopifyId, orderType) {
+    const d = deliveriesData.find(x => x.id === id);
+    const prevStatus = d ? d.status : null;
+    if (d) d.status = status;
+    renderDeliveries();
     try {
       const res = await fetch('/api/deliveries/status', {
         method: 'POST',
@@ -609,14 +700,11 @@
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
-      // Update local data
-      const d = deliveriesData.find(x => x.id === id);
-      if (d) d.status = status;
-      renderDeliveries();
-      const labels = { picked_up: 'Picked Up ✅', delivered: 'Delivered ✅', no_answer: 'No Answer marked', pending: 'Reset to Pending' };
-      showToast('✅ ' + (labels[status] || status), 'success');
-      if (status === 'picked_up') showToast('📦 Picked up + Shopify fulfilled!', 'success');
+      const labels = { picked_up: '📦 Picked Up + Shopify fulfilled!', delivered: '✅ Delivered!', no_answer: '📵 No Answer marked', pending: '↩ Reset to Pending' };
+      showToast(labels[status] || status, 'success');
     } catch (err) {
+      if (d) d.status = prevStatus;
+      renderDeliveries();
       showToast('❌ ' + err.message, 'error');
     }
   }
@@ -628,10 +716,8 @@
     btn.textContent = '↻ Loading...';
     selectedIndexes.clear();
     updateBulkBar();
-
-    document.getElementById('orders-container').innerHTML = `
-      <div class="loading"><div class="spinner"></div><p>Loading orders...</p></div>`;
-
+    document.getElementById('orders-container').innerHTML =
+      '<div class="loading-state"><div class="spinner"></div><p>Loading orders...</p></div>';
     try {
       const [ordersRes, historyRes] = await Promise.all([
         fetch('/api/orders'),
@@ -639,55 +725,52 @@
       ]);
       const data = await ordersRes.json();
       const histData = await historyRes.json();
-      if (!data.success) throw new Error(data.error);
-      ordersData = data.orders;
+      if (!data.success) throw new Error(data.error || 'Failed to fetch orders');
+      ordersData = data.orders || [];
       printHistory = histData.history || {};
       document.getElementById('order-count').textContent = ordersData.length;
       renderOrders(ordersData);
     } catch (err) {
-      document.getElementById('orders-container').innerHTML = `
-        <div class="empty"><div class="icon">⚠️</div><p>Failed to load: ${err.message}</p></div>`;
+      document.getElementById('orders-container').innerHTML =
+        `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Failed to load: ${err.message}</p></div>`;
     } finally {
       btn.disabled = false;
       btn.textContent = '↻ Refresh';
     }
   }
 
-  // ── Render orders ─────────────────────────────────────────────────────────────
   function renderOrders(orders) {
     const container = document.getElementById('orders-container');
-
-    if (orders.length === 0) {
-      container.innerHTML = `
-        <div class="empty"><div class="icon">✅</div><p>No unfulfilled orders. All caught up!</p></div>`;
+    if (!orders || orders.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><p>All caught up! No unfulfilled orders.</p></div>';
       return;
     }
 
     const selectAllRow = `
       <div class="select-all-row" onclick="toggleSelectAll()">
         <input type="checkbox" id="select-all-cb" onclick="event.stopPropagation(); toggleSelectAll()" />
-        <span>Select All</span>
+        <span>Select All (${orders.length})</span>
       </div>`;
 
     const cards = orders.map((order, idx) => {
       const date = new Date(order.createdAt).toLocaleDateString('en-GB', {
-        day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        day: '2-digit', month: 'short', year: 'numeric'
       });
-
       const itemsRows = order.items.map(item => `
         <tr>
           <td>${item.title}${item.variant ? ' — ' + item.variant : ''}</td>
           <td>${item.sku || '—'}</td>
-          <td style="text-align:center;font-weight:700;">${item.quantity}</td>
-        </tr>
-      `).join('');
+          <td class="qty-cell">${item.quantity}</td>
+        </tr>`).join('');
 
-      // Print history badge
       const hist = printHistory[order.name];
       const totalPrints = hist ? (hist.label || 0) + (hist.invoice || 0) + (hist.packing || 0) : 0;
       const printBadge = totalPrints > 0
-        ? `<span class="print-history-badge" title="Label:${hist.label||0} Invoice:${hist.invoice||0} Slip:${hist.packing||0}">🖨️ ${totalPrints}x</span>`
+        ? `<span class="print-badge" title="Label:${hist.label||0} Invoice:${hist.invoice||0} Slip:${hist.packing||0}">🖨️ ${totalPrints}x</span>`
         : '';
+
+      const typeClass = order.isExchange ? 'type-exchange' : 'type-unfulfilled';
+      const typeLabel = order.isExchange ? 'EXCHANGE' : 'ORDER';
 
       return `
         <div class="order-card" id="card-${idx}">
@@ -696,10 +779,10 @@
               <input type="checkbox" class="order-check" id="check-${idx}"
                 onclick="event.stopPropagation(); toggleSelect(${idx})" />
               <span class="order-number">${order.name}</span>
-              <span class="order-status">${order.status}</span>
+              <span class="order-type-pill ${typeClass}">${typeLabel}</span>
               ${printBadge}
             </div>
-            <div style="display:flex;align-items:center;gap:12px;">
+            <div class="order-header-right">
               <span class="order-date">${date}</span>
               <span class="chevron">▼</span>
             </div>
@@ -719,7 +802,6 @@
                 <span>${order.address || '—'}</span>
               </div>
             </div>
-
             <table class="items-table">
               <thead>
                 <tr>
@@ -731,16 +813,15 @@
               <tbody>${itemsRows}</tbody>
             </table>
             <div class="total-row">Total: ${order.total}</div>
-
             <div class="action-buttons">
               <button class="btn btn-label"    onclick="printLabel(${idx})"       id="btn-label-${idx}">
-                <span class="btn-icon">🏷️</span>Print Label
+                <span class="btn-icon">🏷️</span>Label
               </button>
               <button class="btn btn-invoice"  onclick="printInvoice(${idx})"     id="btn-invoice-${idx}">
-                <span class="btn-icon">🖨️</span>Print Invoice
+                <span class="btn-icon">🖨️</span>Invoice
               </button>
               <button class="btn btn-packing"  onclick="printPackingSlip(${idx})" id="btn-packing-${idx}">
-                <span class="btn-icon">📋</span>Packing Slip
+                <span class="btn-icon">📋</span>Slip
               </button>
               <button class="btn btn-printall" onclick="printAll(${idx})"         id="btn-printall-${idx}">
                 <span class="btn-icon">⚡</span>Print All
@@ -756,12 +837,10 @@
     container.innerHTML = selectAllRow + cards;
   }
 
-  // ── Toggle card open/close ────────────────────────────────────────────────────
   function toggleCard(idx) {
     document.getElementById(`card-${idx}`).classList.toggle('open');
   }
 
-  // ── Selection logic ───────────────────────────────────────────────────────────
   function toggleSelect(idx) {
     if (selectedIndexes.has(idx)) {
       selectedIndexes.delete(idx);
@@ -805,7 +884,7 @@
     const bar = document.getElementById('bulk-bar');
     const label = document.getElementById('bulk-label');
     const n = selectedIndexes.size;
-    if (n > 0) {
+    if (n > 0 && currentTab === 'warehouse') {
       bar.classList.add('visible');
       label.textContent = `${n} order${n > 1 ? 's' : ''} selected`;
     } else {
@@ -813,38 +892,29 @@
     }
   }
 
-  // ── Print All for a single order ──────────────────────────────────────────────
   async function printAll(idx) {
     const btn = document.getElementById(`btn-printall-${idx}`);
-    const originalHTML = btn.innerHTML;
+    const orig = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<span class="btn-icon">⏳</span>Printing...';
-    showToast('⚡ Printing label, invoice & packing slip...', 'info');
+    showToast('⚡ Printing all 3 documents...', 'info');
     try {
-      await Promise.all([
-        doPrintLabel(idx),
-        doPrintInvoice(idx),
-        doPrintPackingSlip(idx),
-      ]);
+      await Promise.all([doPrintLabel(idx), doPrintInvoice(idx), doPrintPackingSlip(idx)]);
       showToast('✅ All 3 printed for ' + ordersData[idx].name + '!', 'success');
     } catch (err) {
       showToast('❌ ' + err.message, 'error');
     } finally {
       btn.disabled = false;
-      btn.innerHTML = originalHTML;
+      btn.innerHTML = orig;
     }
   }
 
-  // ── Bulk print ────────────────────────────────────────────────────────────────
   async function bulkPrint(type) {
     const indexes = [...selectedIndexes].sort((a, b) => a - b);
     if (indexes.length === 0) return;
-
     const btns = ['bulk-btn-label','bulk-btn-invoice','bulk-btn-packing','bulk-btn-all'];
     btns.forEach(id => { const b = document.getElementById(id); if(b) b.disabled = true; });
-
-    showToast(`⏳ Printing ${type === 'all' ? 'everything' : type} for ${indexes.length} orders...`, 'info');
-
+    showToast(`⏳ Printing for ${indexes.length} orders...`, 'info');
     let done = 0;
     for (const idx of indexes) {
       try {
@@ -852,29 +922,35 @@
         if (type === 'invoice') await doPrintInvoice(idx);
         if (type === 'packing') await doPrintPackingSlip(idx);
         if (type === 'all') {
-          try { await doPrintLabel(idx); } catch(e) { showToast(`⚠️ ${ordersData[idx].name} label: ${e.message}`, 'error'); await new Promise(r=>setTimeout(r,1000)); }
-          try { await doPrintInvoice(idx); } catch(e) { showToast(`⚠️ ${ordersData[idx].name} invoice: ${e.message}`, 'error'); await new Promise(r=>setTimeout(r,1000)); }
-          try { await doPrintPackingSlip(idx); } catch(e) { showToast(`⚠️ ${ordersData[idx].name} slip: ${e.message}`, 'error'); await new Promise(r=>setTimeout(r,1000)); }
+          try { await doPrintLabel(idx); } catch(e) { showToast(`⚠️ ${ordersData[idx].name}: ${e.message}`, 'error'); await sleep(1000); }
+          try { await doPrintInvoice(idx); } catch(e) { showToast(`⚠️ ${ordersData[idx].name}: ${e.message}`, 'error'); await sleep(1000); }
+          try { await doPrintPackingSlip(idx); } catch(e) { showToast(`⚠️ ${ordersData[idx].name}: ${e.message}`, 'error'); await sleep(1000); }
         }
         done++;
         showToast(`⏳ ${done}/${indexes.length} done...`, 'info');
       } catch (err) {
         showToast(`❌ ${ordersData[idx].name}: ${err.message}`, 'error');
-        await new Promise(r => setTimeout(r, 1500));
+        await sleep(1500);
       }
     }
-
     btns.forEach(id => { const b = document.getElementById(id); if(b) b.disabled = false; });
-    showToast(`✅ Done! Printed ${done}/${indexes.length} orders.`, 'success');
+    showToast(`✅ Done! ${done}/${indexes.length} orders printed.`, 'success');
   }
 
-  // ── Core print helpers (no UI state) ─────────────────────────────────────────
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
   async function doPrintLabel(idx) {
     const order = ordersData[idx];
     const res = await fetch('/api/print/label', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderName: order.name, shopifyId: order.shopifyId, customerName: order.customerName, address: order.address, addressLine1: order.addressLine1, addressLine2: order.addressLine2, addressCity: order.addressCity, phone: order.phone, isExchange: order.isExchange, total: order.total }),
+      body: JSON.stringify({
+        orderName: order.name, shopifyId: order.shopifyId,
+        customerName: order.customerName, address: order.address,
+        addressLine1: order.addressLine1, addressLine2: order.addressLine2,
+        addressCity: order.addressCity, phone: order.phone,
+        isExchange: order.isExchange, total: order.total,
+      }),
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
@@ -897,44 +973,40 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        shopifyId: order.shopifyId, orderName: order.name, customerName: order.customerName,
-        address: order.address, phone: order.phone, items: order.items, total: order.total,
+        shopifyId: order.shopifyId, orderName: order.name,
+        customerName: order.customerName, address: order.address,
+        phone: order.phone, items: order.items, total: order.total,
       }),
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
   }
 
-  // ── Individual print buttons ──────────────────────────────────────────────────
   async function printLabel(idx) {
-    const btn = document.getElementById(`btn-label-${idx}`);
-    await doAction(btn, async () => {
+    await doAction(document.getElementById(`btn-label-${idx}`), async () => {
       await doPrintLabel(idx);
-      showToast('✅ Label sent to Zebra printer!', 'success');
+      showToast('✅ Label sent to Zebra!', 'success');
     });
   }
 
   async function printInvoice(idx) {
-    const btn = document.getElementById(`btn-invoice-${idx}`);
-    await doAction(btn, async () => {
+    await doAction(document.getElementById(`btn-invoice-${idx}`), async () => {
       await doPrintInvoice(idx);
-      showToast('✅ Invoice sent to HP printer!', 'success');
+      showToast('✅ Invoice sent to HP!', 'success');
     });
   }
 
   async function printPackingSlip(idx) {
-    const btn = document.getElementById(`btn-packing-${idx}`);
-    await doAction(btn, async () => {
+    await doAction(document.getElementById(`btn-packing-${idx}`), async () => {
       await doPrintPackingSlip(idx);
-      showToast('✅ Packing slip sent to HP printer!', 'success');
+      showToast('✅ Packing slip sent to HP!', 'success');
     });
   }
 
   async function archiveOrder(idx) {
     const order = ordersData[idx];
-    if (!confirm(`Archive order ${order.name}? This will close it in Shopify.`)) return;
-    const btn = document.getElementById(`btn-archive-${idx}`);
-    await doAction(btn, async () => {
+    if (!confirm(`Archive order ${order.name}?`)) return;
+    await doAction(document.getElementById(`btn-archive-${idx}`), async () => {
       const res = await fetch('/api/orders/archive', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -942,7 +1014,7 @@
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
-      showToast(`📁 Order ${order.name} archived!`, 'success');
+      showToast(`📁 ${order.name} archived!`, 'success');
       selectedIndexes.delete(idx);
       updateBulkBar();
       const card = document.getElementById(`card-${idx}`);
@@ -956,17 +1028,15 @@
     });
   }
 
-  // ── Generic action wrapper ────────────────────────────────────────────────────
   async function doAction(btn, fn) {
-    const originalHTML = btn.innerHTML;
+    const orig = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<span class="btn-icon">⏳</span>Sending...';
     try { await fn(); }
     catch (err) { showToast('❌ ' + err.message, 'error'); }
-    finally { btn.disabled = false; btn.innerHTML = originalHTML; }
+    finally { btn.disabled = false; btn.innerHTML = orig; }
   }
 
-  // ── Toast ─────────────────────────────────────────────────────────────────────
   function showToast(msg, type = '') {
     const toast = document.getElementById('toast');
     toast.textContent = msg;
@@ -975,9 +1045,9 @@
     toast._timer = setTimeout(() => { toast.className = 'toast'; }, 3500);
   }
 
-  // ── Init ──────────────────────────────────────────────────────────────────────
+  // Init
   loadOrders();
-  setInterval(loadOrders, 60000);
+  setInterval(() => { if (currentTab === 'warehouse') loadOrders(); }, 60000);
 </script>
 </body>
 </html>
