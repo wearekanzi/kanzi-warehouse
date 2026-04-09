@@ -70,7 +70,7 @@
       justify-content: center;
       flex-shrink: 0;
     }
-    .header-logo svg { width: 28px; height: 28px; }
+    .header-logo img { width: 28px; height: 28px; object-fit: contain; filter: invert(1); }
     .header-title {
       font-size: 13px;
       font-weight: 800;
@@ -579,15 +579,7 @@
 <header>
   <div class="header-brand">
     <div class="header-logo">
-      <!-- Kanzi K icon SVG -->
-      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="20" y="20" width="60" height="12" fill="white"/>
-        <rect x="20" y="36" width="40" height="12" fill="white"/>
-        <rect x="20" y="52" width="12" height="12" fill="white"/>
-        <rect x="38" y="52" width="12" height="12" fill="white" transform="rotate(0)"/>
-        <polygon points="20,64 32,64 50,85 38,85" fill="white"/>
-        <polygon points="44,64 56,64 74,85 62,85" fill="white"/>
-      </svg>
+      <img src="/kanzi-icon.png" alt="Kanzi" />
     </div>
     <div>
       <div class="header-title">Kanzi</div>
