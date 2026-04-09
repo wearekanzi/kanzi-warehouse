@@ -374,7 +374,7 @@
     /* ── ACTION BUTTONS ── */
     .action-buttons {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       gap: 7px;
     }
     @media (max-width: 600px) { .action-buttons { grid-template-columns: 1fr 1fr; } }
@@ -409,6 +409,9 @@
     .btn-printall:hover:not(:disabled) { background: var(--gray-700); }
     .btn-archive  { background: var(--gray-100); color: var(--gray-500); border: 1px solid var(--gray-200); }
     .btn-archive:hover:not(:disabled)  { background: var(--red-bg); color: var(--red); border-color: #e8b0aa; }
+    .btn-driver   { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+    .btn-driver:hover:not(:disabled)   { background: #c8e6c9; }
+    .btn-driver.assigned { background: #2e7d32; color: #fff; border-color: #2e7d32; cursor: default; }
 
     /* ── DELIVERY FILTER PILLS ── */
     .filter-bar {
@@ -878,6 +881,9 @@
               <button class="btn btn-printall" onclick="printAll(${idx})"         id="btn-printall-${idx}">
                 <span class="btn-icon">⚡</span>Print All
               </button>
+              <button class="btn btn-driver"   onclick="assignDriver(${idx})"      id="btn-driver-${idx}">
+                <span class="btn-icon">🚗</span>Driver
+              </button>
               <button class="btn btn-archive"  onclick="archiveOrder(${idx})"     id="btn-archive-${idx}">
                 <span class="btn-icon">📁</span>Archive
               </button>
@@ -1053,6 +1059,46 @@
       await doPrintPackingSlip(idx);
       showToast('Packing slip sent to HP!', 'success');
     });
+  }
+
+  async function assignDriver(idx) {
+    const order = ordersData[idx];
+    const btn = document.getElementById(`btn-driver-${idx}`);
+    if (btn.classList.contains('assigned')) {
+      showToast(`${order.name} is already in the driver queue.`, 'info');
+      return;
+    }
+    btn.disabled = true;
+    btn.innerHTML = '<span class="btn-icon">⏳</span>Sending...';
+    try {
+      const res = await fetch('/api/assign-driver', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderName: order.name,
+          shopifyId: order.shopifyId,
+          customerName: order.customerName,
+          address: order.address,
+          phone: order.phone,
+          total: order.total,
+          isExchange: order.isExchange,
+          orderType: order.isExchange ? 'EXCHANGE' : 'ORDER',
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      if (data.alreadyAssigned) {
+        showToast(`${order.name} is already in the driver queue.`, 'info');
+      } else {
+        showToast(`${order.name} sent to driver! 🚗`, 'success');
+      }
+      btn.classList.add('assigned');
+      btn.innerHTML = '<span class="btn-icon">✅</span>Assigned';
+    } catch (err) {
+      showToast('❌ ' + err.message, 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<span class="btn-icon">🚗</span>Driver';
+    }
   }
 
   async function archiveOrder(idx) {

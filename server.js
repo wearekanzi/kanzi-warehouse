@@ -242,33 +242,6 @@ app.post('/api/print/label', async (req, res) => {
     const relayRes = await axios.post(`${RELAY_URL}/print/label`, { zpl });
     if (relayRes.data.success) {
       recordPrint(orderName, 'label');
-      // Auto-add to delivery queue on first label print
-      try {
-        const { shopifyId, customerName: custName, address: addr, phone: ph, total: tot, isExchange: isExch } = req.body;
-        const orderType = isExch ? 'EXCHANGE' : 'ORDER';
-        // Check if already in delivery queue
-        const existing = await supabase('GET', `/deliveries?order_name=eq.${encodeURIComponent(orderName)}&limit=1`);
-        if (!existing || existing.length === 0) {
-          // Parse amount — exchange orders with zero balance have nothing to collect/return
-          const amountParts = (tot || '').split(' ');
-          const rawAmount = parseFloat(amountParts[0]) || 0;
-          const amount = rawAmount > 0 ? String(rawAmount) : '';
-          const amount_type = rawAmount > 0 ? (isExch ? 'collect' : 'collect') : null;
-          await supabase('POST', '/deliveries', {
-            order_name: orderName,
-            order_type: orderType,
-            status: 'pending',
-            customer_name: custName || '',
-            address: addr || '',
-            phone: ph || '',
-            amount,
-            amount_type,
-            shopify_id: shopifyId || '',
-          });
-        }
-      } catch (e) {
-        console.error('Delivery queue error:', e.message);
-      }
     }
     res.json(relayRes.data);
   } catch (err) {
@@ -373,6 +346,44 @@ app.get('/api/deliveries', async (req, res) => {
     res.json({ success: true, deliveries: data });
   } catch (err) {
     console.error('Deliveries fetch error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── API: ASSIGN ORDER TO DRIVER ────────────────────────────────────────────
+app.post('/api/assign-driver', async (req, res) => {
+  try {
+    const { orderName, shopifyId, customerName, address, phone, total, isExchange, orderType } = req.body;
+    if (!orderName) return res.status(400).json({ success: false, error: 'orderName required' });
+
+    // Check if already in delivery queue
+    const existing = await supabase('GET', `/deliveries?order_name=eq.${encodeURIComponent(orderName)}&limit=1`);
+    if (existing && existing.length > 0) {
+      return res.json({ success: true, alreadyAssigned: true });
+    }
+
+    // Parse amount — exchange orders with zero balance have nothing to collect/return
+    const amountParts = (total || '').split(' ');
+    const rawAmount = parseFloat(amountParts[0]) || 0;
+    const amount = rawAmount > 0 ? String(rawAmount) : '';
+    const amount_type = rawAmount > 0 ? 'collect' : null;
+    const type = orderType || (isExchange ? 'EXCHANGE' : 'ORDER');
+
+    await supabase('POST', '/deliveries', {
+      order_name: orderName,
+      order_type: type,
+      status: 'pending',
+      customer_name: customerName || '',
+      address: address || '',
+      phone: phone || '',
+      amount,
+      amount_type,
+      shopify_id: shopifyId || '',
+    });
+
+    res.json({ success: true, alreadyAssigned: false });
+  } catch (err) {
+    console.error('Assign driver error:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
