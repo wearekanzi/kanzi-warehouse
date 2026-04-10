@@ -348,7 +348,13 @@ async function supabase(method, path, body) {
 app.get('/api/deliveries', async (req, res) => {
   try {
     const data = await supabase('GET', '/deliveries?order=created_at.desc&limit=200');
-    res.json({ success: true, deliveries: data });
+    // Transliterate Arabic names and addresses for drivers who only read English
+    const deliveries = (data || []).map(d => ({
+      ...d,
+      customer_name: transliterate(d.customer_name || '') || d.customer_name || '',
+      address:       transliterate(d.address       || '') || d.address       || '',
+    }));
+    res.json({ success: true, deliveries });
   } catch (err) {
     console.error('Deliveries fetch error:', err.message);
     res.status(500).json({ success: false, error: err.message });
