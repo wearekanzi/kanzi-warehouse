@@ -113,104 +113,75 @@ app.get('/api/print-history', (req, res) => {
 });
 
 // ─── API: GET UNFULFILLED ORDERS ──────────────────────────────────────────────
+// Helper: build the order fields fragment for GraphQL
+const ORDER_FIELDS = `
+  id name createdAt displayFulfillmentStatus note
+  customer { firstName lastName phone }
+  shippingAddress { address1 address2 city province zip country phone }
+  lineItems(first: 20) {
+    edges { node {
+      title quantity fulfillableQuantity
+      variant {
+        title sku
+        image { url }
+        product { metafield(namespace: "custom", key: "product_storage_location") { value } }
+      }
+    }}
+  }
+  totalPriceSet { shopMoney { amount currencyCode } }
+  currentTotalPriceSet { shopMoney { amount currencyCode } }
+  totalReceivedSet { shopMoney { amount currencyCode } }
+  totalOutstandingSet { shopMoney { amount currencyCode } }
+  tags
+`;
+
 app.get('/api/orders', async (req, res) => {
   try {
-    const data = await shopifyGQL(`
-      {
-        orders(first: 50, query: "fulfillment_status:unfulfilled status:open") {
-          edges {
-            node {
-              id
-              name
-              createdAt
-              displayFulfillmentStatus
-              note
-              customer {
-                firstName
-                lastName
-                phone
-              }
-              shippingAddress {
-                address1
-                address2
-                city
-                province
-                zip
-                country
-                phone
-              }
-              lineItems(first: 20) {
-                edges {
-                  node {
-                    title
-                    quantity
-                    fulfillableQuantity
-                    variant {
-                      title
-                      sku
-                      image {
-                        url
-                      }
-                      product {
-                        metafield(namespace: "custom", key: "product_storage_location") {
-                          value
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-              totalPriceSet {
-                shopMoney {
-                  amount
-                  currencyCode
-                }
-              }
-              currentTotalPriceSet {
-                shopMoney {
-                  amount
-                  currencyCode
-                }
-              }
-              totalReceivedSet {
-                shopMoney {
-                  amount
-                  currencyCode
-                }
-              }
-              totalOutstandingSet {
-                shopMoney {
-                  amount
-                  currencyCode
-                }
-              }
-              tags
-            }
-          }
-        }
-      }
-    `);
+    // Run two queries in parallel:
+    // 1. All unfulfilled open orders (regular + exchange)
+    // 2. All open orders tagged 'return' (may be fulfilled — driver needs to pick up the item)
+    const [data, returnData] = await Promise.all([
+      shopifyGQL(`{ orders(first: 50, query: "fulfillment_status:unfulfilled status:open") { edges { node { ${ORDER_FIELDS} } } } }`),
+      shopifyGQL(`{ orders(first: 50, query: "tag:return status:open") { edges { node { ${ORDER_FIELDS} } } } }`),
+    ]);
 
     if (!data.data) {
       const errs = (data.errors || []).map(e => e.message).join(', ');
       throw new Error('Shopify API error: ' + errs);
     }
 
-    const orders = data.data.orders.edges.map(e => {
+    // Merge and deduplicate by order ID
+    const unfulfilledEdges = data.data.orders.edges;
+    const returnEdges = (returnData.data?.orders?.edges || []);
+    const seenIds = new Set();
+    const allEdges = [];
+    for (const e of [...unfulfilledEdges, ...returnEdges]) {
+      if (!seenIds.has(e.node.id)) {
+        seenIds.add(e.node.id);
+        allEdges.push(e);
+      }
+    }
+
+    // Helper to map a Shopify order node to our app format
+    function mapOrder(e) {
       const o = e.node;
       const addr = o.shippingAddress || {};
       const customer = o.customer || {};
 
-      // Unfulfilled line items
-      const unfulfilledItems = o.lineItems.edges.filter(li => li.node.fulfillableQuantity > 0);
-
-      // Order is an exchange if tagged with 'exchange' (case-insensitive)
       const tags = (o.tags || []).map(t => t.toLowerCase());
       const isExchange = tags.some(t => t.includes('exchange'));
+      const isReturn = tags.some(t => t.includes('return'));
 
-      // Amount calculations
-      // For COD orders, GraphQL totalOutstandingSet returns 0 (only counts electronic payments).
-      // Fix: outstanding = currentTotal - totalReceived. COD orders have totalReceived=0 so outstanding = full amount.
+      // For return orders, show all line items (order is already fulfilled, driver picks up the item)
+      // For regular/exchange orders, show only unfulfilled items
+      const displayItems = isReturn
+        ? o.lineItems.edges
+        : o.lineItems.edges.filter(li => li.node.fulfillableQuantity > 0);
+
+      // Amount: outstanding = currentTotal - totalReceived
+      // COD orders have totalReceived=0 → outstanding = full amount
+      // Pre-paid orders have totalReceived=currentTotal → outstanding = 0
+      // Return orders: refund amount = totalReceived - currentTotal (if positive)
       const currency = o.totalPriceSet.shopMoney.currencyCode;
       const currentTotal = parseFloat(o.currentTotalPriceSet?.shopMoney?.amount || o.totalPriceSet.shopMoney.amount);
       const totalReceived = parseFloat(o.totalReceivedSet?.shopMoney?.amount || 0);
@@ -223,6 +194,7 @@ app.get('/api/orders', async (req, res) => {
         createdAt: o.createdAt,
         status: o.displayFulfillmentStatus,
         isExchange,
+        isReturn,
         customerName: `${customer.firstName || ''} ${customer.lastName || ''}`.trim(),
         phone: addr.phone || customer.phone || '',
         address: [addr.address1, addr.address2, addr.city, addr.province, addr.country]
@@ -230,19 +202,20 @@ app.get('/api/orders', async (req, res) => {
         addressLine1: addr.address1 || '',
         addressLine2: addr.address2 || '',
         addressCity: [addr.city, addr.province, addr.country].filter(Boolean).join(', '),
-        items: unfulfilledItems.map(li => ({
+        items: displayItems.map(li => ({
           title: li.node.title,
           variant: li.node.variant?.title !== 'Default Title' ? li.node.variant?.title : '',
           sku: li.node.variant?.sku || '',
-          quantity: li.node.fulfillableQuantity,
+          quantity: isReturn ? li.node.quantity : li.node.fulfillableQuantity,
           imageUrl: li.node.variant?.image?.url || '',
           storageLocation: li.node.variant?.product?.metafield?.value || '',
         })),
         total: `${currentTotal.toFixed(3)} ${currency}`,
         amountToCollect: `${outstanding.toFixed(3)} ${currency}`,
       };
-    });
+    }
 
+    const orders = allEdges.map(mapOrder);
     res.json({ success: true, orders });
   } catch (err) {
     console.error('Error fetching orders:', err.message);

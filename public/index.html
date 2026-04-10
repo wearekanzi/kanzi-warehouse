@@ -824,8 +824,8 @@
         ? `<span class="print-badge" title="Label:${hist.label||0} Invoice:${hist.invoice||0} Slip:${hist.packing||0}">Printed ${totalPrints}x</span>`
         : '';
 
-      const typeClass = order.isExchange ? 'type-exchange' : 'type-unfulfilled';
-      const typeLabel = order.isExchange ? 'Exchange' : 'Order';
+      const typeClass = order.isReturn ? 'type-return' : order.isExchange ? 'type-exchange' : 'type-unfulfilled';
+      const typeLabel = order.isReturn ? 'Return' : order.isExchange ? 'Exchange' : 'Order';
 
       return `
         <div class="order-card" id="card-${idx}">
@@ -1105,7 +1105,8 @@
             total: order.total,
             amountToCollect: order.amountToCollect,
             isExchange: order.isExchange,
-            orderType: order.isExchange ? 'EXCHANGE' : 'ORDER',
+            isReturn: order.isReturn,
+            orderType: order.isReturn ? 'RETURN' : order.isExchange ? 'EXCHANGE' : 'ORDER',
           }),
         });
         const data = await res.json();
