@@ -426,6 +426,19 @@ app.post('/api/unassign-driver', async (req, res) => {
   }
 });
 
+// ─── API: PATCH DELIVERY AMOUNT ─────────────────────────────────────────────
+app.post('/api/deliveries/patch-amount', async (req, res) => {
+  try {
+    const { orderName, amount, amount_type } = req.body;
+    if (!orderName) return res.status(400).json({ success: false, error: 'orderName required' });
+    await supabase('PATCH', `/deliveries?order_name=eq.${encodeURIComponent(orderName)}`, { amount, amount_type });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Patch amount error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ─── API: UPDATE DELIVERY STATUS ─────────────────────────────────────────────
 app.post('/api/deliveries/status', async (req, res) => {
   try {
