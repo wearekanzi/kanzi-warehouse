@@ -186,6 +186,8 @@ app.get('/api/orders', async (req, res) => {
       const currentTotal = parseFloat(o.currentTotalPriceSet?.shopMoney?.amount || o.totalPriceSet.shopMoney.amount);
       const totalReceived = parseFloat(o.totalReceivedSet?.shopMoney?.amount || 0);
       const outstanding = Math.max(0, currentTotal - totalReceived);
+      // For return orders: refund = what customer paid minus what the adjusted order is worth
+      const refund = isReturn ? Math.max(0, totalReceived - currentTotal) : 0;
 
       return {
         id: o.id,
@@ -212,6 +214,7 @@ app.get('/api/orders', async (req, res) => {
         })),
         total: `${currentTotal.toFixed(3)} ${currency}`,
         amountToCollect: `${outstanding.toFixed(3)} ${currency}`,
+        refundAmount: `${refund.toFixed(3)} ${currency}`,
       };
     }
 
@@ -353,7 +356,7 @@ app.get('/api/deliveries', async (req, res) => {
 // ─── API: ASSIGN ORDER TO DRIVER ────────────────────────────────────────────
 app.post('/api/assign-driver', async (req, res) => {
   try {
-    const { orderName, shopifyId, customerName, address, phone, total, amountToCollect, isExchange, orderType } = req.body;
+    const { orderName, shopifyId, customerName, address, phone, total, amountToCollect, isExchange, isReturn, orderType } = req.body;
     if (!orderName) return res.status(400).json({ success: false, error: 'orderName required' });
 
     // Check if already in delivery queue
@@ -362,14 +365,32 @@ app.post('/api/assign-driver', async (req, res) => {
       return res.json({ success: true, alreadyAssigned: true });
     }
 
-    // Use amountToCollect (outstanding balance) for what the driver needs to collect
-    // If amountToCollect is provided, use it; otherwise fall back to total
-    const collectSource = amountToCollect || total || '';
-    const amountParts = collectSource.split(' ');
-    const rawAmount = parseFloat(amountParts[0]) || 0;
+    const type = orderType || (isReturn ? 'RETURN' : isExchange ? 'EXCHANGE' : 'ORDER');
+
+    let rawAmount = 0;
+    let amount_type = null;
+
+    if (isReturn) {
+      // For return orders: the driver gives money BACK to the customer
+      // refundAmount = totalReceived - currentTotal (what was paid minus what the order is now worth)
+      // The front-end passes amountToCollect=0 for return orders (outstanding=0 since already paid)
+      // So we need to compute refund from total (original paid) vs current total
+      // total = currentTotal (what order is worth now after return)
+      // We need to know what was paid — use a separate field or compute from total
+      // Since the front-end now passes refundAmount explicitly, use it
+      const refundSource = req.body.refundAmount || '';
+      const refundParts = String(refundSource).split(' ');
+      rawAmount = parseFloat(refundParts[0]) || 0;
+      amount_type = rawAmount > 0 ? 'refund' : null;
+    } else {
+      // For regular/exchange orders: driver collects outstanding balance
+      const collectSource = amountToCollect || total || '';
+      const amountParts = String(collectSource).split(' ');
+      rawAmount = parseFloat(amountParts[0]) || 0;
+      amount_type = rawAmount > 0 ? 'collect' : null;
+    }
+
     const amount = rawAmount > 0 ? String(rawAmount) : '';
-    const amount_type = rawAmount > 0 ? 'collect' : null;
-    const type = orderType || (isExchange ? 'EXCHANGE' : 'ORDER');
 
     await supabase('POST', '/deliveries', {
       order_name: orderName,
