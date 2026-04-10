@@ -142,7 +142,7 @@ app.get('/api/orders', async (req, res) => {
     // 2. All open orders tagged 'return' (may be fulfilled — driver needs to pick up the item)
     const [data, returnData] = await Promise.all([
       shopifyGQL(`{ orders(first: 50, query: "fulfillment_status:unfulfilled status:open") { edges { node { ${ORDER_FIELDS} } } } }`),
-      shopifyGQL(`{ orders(first: 50, query: "tag:return status:open") { edges { node { ${ORDER_FIELDS} } } } }`),
+      shopifyGQL(`{ orders(first: 50, query: "tag:return NOT financial_status:refunded") { edges { node { ${ORDER_FIELDS} } } } }`),
     ]);
 
     if (!data.data) {
@@ -186,8 +186,10 @@ app.get('/api/orders', async (req, res) => {
       const currentTotal = parseFloat(o.currentTotalPriceSet?.shopMoney?.amount || o.totalPriceSet.shopMoney.amount);
       const totalReceived = parseFloat(o.totalReceivedSet?.shopMoney?.amount || 0);
       const outstanding = Math.max(0, currentTotal - totalReceived);
-      // For return orders: refund = what customer paid minus what the adjusted order is worth
-      const refund = isReturn ? Math.max(0, totalReceived - currentTotal) : 0;
+      // For return orders: refund = original total paid minus current adjusted total
+      // (e.g. paid 21.9, current order worth 2.0 after return → refund = 19.9)
+      const originalTotal = parseFloat(o.totalPriceSet.shopMoney.amount);
+      const refund = isReturn ? Math.max(0, originalTotal - currentTotal) : 0;
 
       return {
         id: o.id,
