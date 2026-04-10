@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -11,92 +11,405 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --black: #000000; --white: #ffffff; --off-white: #F5F4F0;
-      --gray-100: #f4f4f4; --gray-200: #e8e8e8; --gray-300: #d0d0d0;
-      --gray-400: #a0a0a0; --gray-500: #707070; --gray-600: #505050; --gray-700: #303030;
-      --radius: 14px; --radius-sm: 8px;
-      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 14px rgba(0,0,0,0.06);
-      --shadow-lg: 0 4px 24px rgba(0,0,0,0.13);
-      --green: #1a7a4a; --green-bg: #edf7f2;
-      --red: #c0392b; --red-bg: #fdf0ee;
-      --amber: #b7860b; --amber-bg: #fdf8ec;
-      --blue: #1a4fa0; --blue-bg: #edf2fc;
+      --black: #0a0a0a;
+      --white: #ffffff;
+      --surface: #f7f7f5;
+      --card: #ffffff;
+      --border: #ebebeb;
+      --border-strong: #d8d8d8;
+
+      --gray-3: #f5f5f5;
+      --gray-4: #ebebeb;
+      --gray-5: #d8d8d8;
+      --gray-6: #b0b0b0;
+      --gray-7: #787878;
+      --gray-8: #505050;
+      --gray-9: #2a2a2a;
+
+      --green: #0a7a45;
+      --green-light: #e6f5ee;
+      --green-border: #b3dfc9;
+
+      --red: #c0392b;
+      --red-light: #fdf0ee;
+      --red-border: #e8b0aa;
+
+      --amber: #b06000;
+      --amber-light: #fdf5e6;
+      --amber-border: #f0c878;
+
+      --blue: #1a4fa0;
+      --blue-light: #edf2fc;
+      --blue-border: #b0c8f0;
+
+      --radius-xs: 6px;
+      --radius-sm: 10px;
+      --radius: 16px;
+      --radius-lg: 20px;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.04);
+      --shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.06);
     }
-    body { font-family: 'Montserrat', -apple-system, sans-serif; background: var(--off-white); color: var(--black); min-height: 100vh; padding-bottom: 80px; }
-    header { background: var(--black); color: var(--white); padding: 0 18px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 200; }
-    .header-brand { display: flex; align-items: center; gap: 12px; }
-    .header-logo { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
-    .header-logo img { width: 28px; height: 28px; object-fit: contain; filter: invert(1); }
-    .header-title { font-size: 13px; font-weight: 800; letter-spacing: 2.5px; text-transform: uppercase; color: var(--white); }
-    .header-subtitle { font-size: 10px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray-400); margin-top: 1px; }
-    .header-right { display: flex; align-items: center; gap: 10px; }
-    .order-count-badge { background: var(--white); color: var(--black); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; }
-    .refresh-btn { background: transparent; color: var(--white); border: 1px solid rgba(255,255,255,0.25); border-radius: var(--radius-sm); padding: 7px 14px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.2s; }
-    .refresh-btn:hover { background: rgba(255,255,255,0.1); }
-    .refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .filter-wrap { background: var(--black); padding: 0 18px 14px; display: flex; gap: 7px; overflow-x: auto; -webkit-overflow-scrolling: touch; border-bottom: 1px solid rgba(255,255,255,0.08); }
-    .filter-wrap::-webkit-scrollbar { display: none; }
-    .pill { border: 1.5px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 6px 16px; font-size: 10px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.2s; background: transparent; color: rgba(255,255,255,0.5); white-space: nowrap; }
-    .pill:hover { border-color: rgba(255,255,255,0.6); color: var(--white); }
-    .pill.active { background: var(--white); border-color: var(--white); color: var(--black); }
-    .main { max-width: 600px; margin: 0 auto; padding: 18px 14px; }
-    .loading-state, .empty-state { text-align: center; padding: 70px 20px; color: var(--gray-400); }
-    .spinner { width: 32px; height: 32px; border: 2px solid var(--gray-200); border-top-color: var(--black); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 14px; }
+
+    body {
+      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--surface);
+      color: var(--black);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 100px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--black);
+      padding: 0 20px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .header-brand { display: flex; align-items: center; gap: 10px; }
+    .header-logo img { width: 26px; height: 26px; object-fit: contain; filter: invert(1); display: block; }
+    .header-title { font-size: 14px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--white); }
+    .header-sub { font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--gray-6); margin-top: 1px; }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .refresh-btn {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 50%;
+      color: var(--white);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .refresh-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
+    .refresh-btn:disabled { opacity: 0.3; }
+    .refresh-btn.spinning { animation: spin 0.7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .empty-icon { font-size: 44px; margin-bottom: 12px; }
-    .empty-state p, .loading-state p { font-size: 13px; font-weight: 600; letter-spacing: 0.3px; }
-    .order-card { background: var(--white); border-radius: var(--radius); margin-bottom: 12px; box-shadow: var(--shadow); overflow: hidden; border: 1.5px solid var(--gray-100); transition: box-shadow 0.2s; }
-    .order-card:hover { box-shadow: var(--shadow-lg); }
-    .order-card.status-pending    { border-top: 3px solid var(--amber); }
-    .order-card.status-picked_up  { border-top: 3px solid var(--blue); }
-    .order-card.status-delivered  { border-top: 3px solid var(--green); }
-    .order-card.status-no_answer  { border-top: 3px solid var(--red); }
-    .card-top { padding: 16px 18px 12px; }
-    .card-row1 { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .card-left { display: flex; align-items: center; gap: 8px; }
-    .order-name { font-size: 20px; font-weight: 900; color: var(--black); letter-spacing: 0.3px; }
-    .type-pill { border-radius: 5px; padding: 3px 9px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; }
-    .type-order    { background: var(--gray-100); color: var(--gray-600); border: 1px solid var(--gray-200); }
-    .type-exchange { background: var(--amber-bg); color: var(--amber); border: 1px solid #f0d080; }
-    .type-return   { background: var(--red-bg); color: var(--red); border: 1px solid #e8b0aa; }
-    .status-badge { border-radius: 6px; padding: 5px 11px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-    .sb-pending    { background: var(--amber-bg); color: var(--amber); }
-    .sb-picked_up  { background: var(--blue-bg); color: var(--blue); }
-    .sb-delivered  { background: var(--green-bg); color: var(--green); }
-    .sb-no_answer  { background: var(--red-bg); color: var(--red); }
-    .amount-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--green-bg); border: 1px solid #a8dfc0; color: var(--green); border-radius: 7px; padding: 7px 14px; font-size: 14px; font-weight: 800; margin-bottom: 12px; letter-spacing: 0.3px; }
-    .amount-chip.refund { background: var(--red-bg); border-color: #e8b0aa; color: var(--red); }
-    .customer-name { font-size: 16px; font-weight: 700; color: var(--black); margin-bottom: 8px; }
-    .info-row { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--gray-500); font-weight: 500; margin-bottom: 6px; line-height: 1.4; }
-    .info-row .ic { flex-shrink: 0; font-size: 15px; }
-    .contact-row { display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--gray-100); }
-    .contact-btn { flex: 1; border: none; border-radius: var(--radius-sm); padding: 12px; font-size: 12px; font-weight: 700; letter-spacing: 0.3px; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
-    .contact-btn:active { transform: scale(0.96); }
-    .btn-call { background: var(--gray-100); color: var(--black); border: 1px solid var(--gray-200); }
-    .btn-call:hover { background: var(--gray-200); }
-    .btn-wa { background: #25d366; color: white; }
-    .btn-wa:hover { background: #1db954; }
-    .status-actions { padding: 12px 18px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .sa-btn { border: none; border-radius: var(--radius-sm); padding: 14px 10px; font-size: 12px; font-weight: 800; letter-spacing: 0.3px; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-    .sa-btn:active:not(:disabled) { transform: scale(0.96); }
-    .sa-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-    .sa-pickup    { background: var(--black); color: var(--white); }
-    .sa-pickup:hover:not(:disabled)    { background: var(--gray-700); }
-    .sa-delivered { background: var(--green); color: var(--white); }
-    .sa-delivered:hover:not(:disabled) { background: #155a38; }
-    .sa-noanswer  { background: var(--amber); color: var(--white); }
-    .sa-noanswer:hover:not(:disabled)  { background: #9a6e09; }
-    .sa-reset     { background: var(--gray-100); color: var(--gray-600); border: 1px solid var(--gray-200); }
-    .sa-reset:hover:not(:disabled)     { background: var(--gray-200); }
-    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(120px); background: var(--black); color: var(--white); padding: 14px 24px; border-radius: 10px; font-size: 13px; font-weight: 700; letter-spacing: 0.3px; z-index: 9999; transition: transform 0.3s ease; max-width: 90vw; text-align: center; box-shadow: var(--shadow-lg); font-family: 'Montserrat', sans-serif; }
+
+    /* ── SUMMARY BAR ── */
+    .summary-bar {
+      background: var(--black);
+      padding: 0 20px 16px;
+      display: flex;
+      gap: 8px;
+    }
+    .summary-chip {
+      flex: 1;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-sm);
+      padding: 10px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .summary-chip.active {
+      background: var(--white);
+      border-color: var(--white);
+    }
+    .summary-chip .chip-count {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--white);
+      line-height: 1;
+      display: block;
+    }
+    .summary-chip.active .chip-count { color: var(--black); }
+    .summary-chip .chip-label {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      margin-top: 3px;
+      display: block;
+    }
+    .summary-chip.active .chip-label { color: var(--gray-7); }
+    .summary-chip.chip-pending .chip-count { color: #f5c842; }
+    .summary-chip.chip-pending.active .chip-count { color: var(--amber); }
+    .summary-chip.chip-pickedup .chip-count { color: #7eb8f7; }
+    .summary-chip.chip-pickedup.active .chip-count { color: var(--blue); }
+    .summary-chip.chip-delivered .chip-count { color: #5fd49a; }
+    .summary-chip.chip-delivered.active .chip-count { color: var(--green); }
+    .summary-chip.chip-noanswer .chip-count { color: #f0857a; }
+    .summary-chip.chip-noanswer.active .chip-count { color: var(--red); }
+
+    /* ── MAIN ── */
+    .main { max-width: 600px; margin: 0 auto; padding: 16px 14px; }
+
+    /* ── STATES ── */
+    .loading-state, .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--gray-6);
+    }
+    .spinner {
+      width: 28px; height: 28px;
+      border: 2.5px solid var(--gray-4);
+      border-top-color: var(--black);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 14px;
+    }
+    .empty-icon { font-size: 40px; margin-bottom: 10px; }
+    .empty-state p, .loading-state p { font-size: 13px; font-weight: 600; color: var(--gray-6); }
+
+    /* ── ORDER CARD ── */
+    .order-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+
+    /* Status accent — left border stripe */
+    .order-card.status-pending   { border-left: 4px solid var(--amber); }
+    .order-card.status-picked_up { border-left: 4px solid var(--blue); }
+    .order-card.status-delivered { border-left: 4px solid var(--green); opacity: 0.75; }
+    .order-card.status-no_answer { border-left: 4px solid var(--red); }
+
+    /* ── CARD HEADER ── */
+    .card-header {
+      padding: 14px 16px 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .card-header-left { display: flex; flex-direction: column; gap: 5px; }
+    .card-order-num { font-size: 22px; font-weight: 900; color: var(--black); letter-spacing: -0.3px; line-height: 1; }
+    .card-meta { display: flex; align-items: center; gap: 6px; }
+    .type-pill {
+      border-radius: var(--radius-xs);
+      padding: 2px 7px;
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .type-order    { background: var(--gray-3); color: var(--gray-8); border: 1px solid var(--gray-4); }
+    .type-exchange { background: var(--amber-light); color: var(--amber); border: 1px solid var(--amber-border); }
+    .type-return   { background: var(--red-light); color: var(--red); border: 1px solid var(--red-border); }
+
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-pending   { background: var(--amber); }
+    .dot-picked_up { background: var(--blue); }
+    .dot-delivered { background: var(--green); }
+    .dot-no_answer { background: var(--red); }
+
+    .status-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .sl-pending   { color: var(--amber); }
+    .sl-picked_up { color: var(--blue); }
+    .sl-delivered { color: var(--green); }
+    .sl-no_answer { color: var(--red); }
+
+    /* ── AMOUNT BANNER ── */
+    .amount-banner {
+      margin: 12px 16px 0;
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .amount-banner.collect {
+      background: var(--green-light);
+      border: 1px solid var(--green-border);
+    }
+    .amount-banner.refund {
+      background: var(--red-light);
+      border: 1px solid var(--red-border);
+    }
+    .amount-banner-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .collect .amount-banner-label { color: var(--green); }
+    .refund  .amount-banner-label { color: var(--red); }
+    .amount-banner-value {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+    }
+    .collect .amount-banner-value { color: var(--green); }
+    .refund  .amount-banner-value { color: var(--red); }
+    .amount-banner-icon { font-size: 22px; }
+
+    /* ── CUSTOMER INFO ── */
+    .card-body {
+      padding: 12px 16px 14px;
+    }
+    .customer-name {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--black);
+      margin-bottom: 8px;
+    }
+    .info-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--gray-7);
+      font-weight: 500;
+      margin-bottom: 5px;
+      line-height: 1.5;
+    }
+    .info-row .ic { flex-shrink: 0; font-size: 13px; margin-top: 1px; }
+
+    /* ── CONTACT ROW ── */
+    .contact-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .contact-btn {
+      flex: 1;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 11px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .contact-btn:active { transform: scale(0.95); }
+    .btn-call { background: var(--gray-3); color: var(--black); border: 1px solid var(--gray-4); }
+    .btn-wa   { background: #25d366; color: white; }
+
+    /* ── DIVIDER ── */
+    .card-divider { height: 1px; background: var(--border); margin: 0 16px; }
+
+    /* ── ACTION SECTION ── */
+    .card-actions { padding: 12px 16px 14px; }
+
+    /* Primary action — full width, most important next step */
+    .action-primary {
+      width: 100%;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 15px;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .action-primary:active { transform: scale(0.97); }
+
+    /* Primary states */
+    .ap-pickup    { background: var(--black); color: var(--white); }
+    .ap-delivered { background: var(--green); color: var(--white); }
+
+    /* Secondary actions row */
+    .action-secondary-row {
+      display: flex;
+      gap: 8px;
+    }
+    .action-secondary {
+      flex: 1;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 11px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .action-secondary:active { transform: scale(0.95); }
+
+    .as-noanswer { background: var(--amber-light); color: var(--amber); border: 1px solid var(--amber-border); }
+    .as-reset    { background: var(--gray-3); color: var(--gray-8); border: 1px solid var(--gray-4); }
+    .as-delivered { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+
+    /* Delivered card — collapsed, minimal */
+    .order-card.status-delivered .card-actions { display: none; }
+    .order-card.status-delivered .card-body .contact-row { display: none; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      background: var(--gray-9);
+      color: var(--white);
+      padding: 13px 22px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      z-index: 9999;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      max-width: 88vw;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      font-family: 'Montserrat', sans-serif;
+      white-space: nowrap;
+    }
     .toast.show { transform: translateX(-50%) translateY(0); }
     .toast.success { background: var(--green); }
     .toast.error   { background: var(--red); }
-    .toast.info    { background: var(--gray-700); }
+    .toast.info    { background: var(--gray-9); }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--gray-6);
+      padding: 4px 2px 8px;
+    }
   </style>
 </head>
 <body>
+
 <header>
   <div class="header-brand">
     <div class="header-logo">
@@ -104,95 +417,273 @@
     </div>
     <div>
       <div class="header-title">Kanzi</div>
-      <div class="header-subtitle">Driver</div>
+      <div class="header-sub">Driver</div>
     </div>
   </div>
   <div class="header-right">
-    <span class="order-count-badge" id="order-count">0 pending</span>
-    <button class="refresh-btn" id="refresh-btn" onclick="loadOrders()">↻</button>
+    <button class="refresh-btn" id="refresh-btn" onclick="loadOrders()" title="Refresh">↻</button>
   </div>
 </header>
-<div class="filter-wrap">
-  <button class="pill active" id="pill-all"       onclick="setFilter('all')">All</button>
-  <button class="pill"        id="pill-pending"   onclick="setFilter('pending')">Pending</button>
-  <button class="pill"        id="pill-picked_up" onclick="setFilter('picked_up')">Picked Up</button>
-  <button class="pill"        id="pill-delivered" onclick="setFilter('delivered')">Delivered</button>
-  <button class="pill"        id="pill-no_answer" onclick="setFilter('no_answer')">No Answer</button>
+
+<!-- Summary / filter chips -->
+<div class="summary-bar" id="summary-bar">
+  <div class="summary-chip active" id="chip-all" onclick="setFilter('all')">
+    <span class="chip-count" id="cnt-all">—</span>
+    <span class="chip-label">All</span>
+  </div>
+  <div class="summary-chip chip-pending" id="chip-pending" onclick="setFilter('pending')">
+    <span class="chip-count" id="cnt-pending">—</span>
+    <span class="chip-label">Pending</span>
+  </div>
+  <div class="summary-chip chip-pickedup" id="chip-picked_up" onclick="setFilter('picked_up')">
+    <span class="chip-count" id="cnt-picked_up">—</span>
+    <span class="chip-label">Picked Up</span>
+  </div>
+  <div class="summary-chip chip-delivered" id="chip-delivered" onclick="setFilter('delivered')">
+    <span class="chip-count" id="cnt-delivered">—</span>
+    <span class="chip-label">Delivered</span>
+  </div>
+  <div class="summary-chip chip-noanswer" id="chip-no_answer" onclick="setFilter('no_answer')">
+    <span class="chip-count" id="cnt-no_answer">—</span>
+    <span class="chip-label">No Answer</span>
+  </div>
 </div>
+
 <div class="main" id="main-container">
-  <div class="loading-state"><div class="spinner"></div><p>Loading orders...</p></div>
+  <div class="loading-state"><div class="spinner"></div><p>Loading orders…</p></div>
 </div>
+
 <div class="toast" id="toast"></div>
+
 <script>
   let allOrders = [];
   let currentFilter = 'all';
+
   async function loadOrders() {
     const btn = document.getElementById('refresh-btn');
     btn.disabled = true;
-    document.getElementById('main-container').innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Loading orders...</p></div>';
+    btn.classList.add('spinning');
     try {
       const res = await fetch('/api/deliveries');
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       allOrders = data.deliveries || [];
-      updateCountBadge();
+      updateCounts();
       renderOrders();
     } catch (err) {
-      document.getElementById('main-container').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Failed to load: ' + err.message + '</p></div>';
-    } finally { btn.disabled = false; }
+      document.getElementById('main-container').innerHTML =
+        '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Failed to load: ' + err.message + '</p></div>';
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('spinning');
+    }
   }
-  function updateCountBadge() {
-    const pending = allOrders.filter(o => o.status === 'pending' || o.status === 'picked_up').length;
-    document.getElementById('order-count').textContent = pending + ' pending';
+
+  function updateCounts() {
+    const statuses = ['all', 'pending', 'picked_up', 'delivered', 'no_answer'];
+    statuses.forEach(s => {
+      const count = s === 'all'
+        ? allOrders.length
+        : allOrders.filter(o => o.status === s).length;
+      const el = document.getElementById('cnt-' + s);
+      if (el) el.textContent = count;
+    });
   }
+
   function setFilter(f) {
     currentFilter = f;
-    ['all','pending','picked_up','delivered','no_answer'].forEach(id => {
-      document.getElementById('pill-' + id).classList.toggle('active', id === f);
+    ['all', 'pending', 'picked_up', 'delivered', 'no_answer'].forEach(id => {
+      const chip = document.getElementById('chip-' + id);
+      if (chip) chip.classList.toggle('active', id === f);
     });
     renderOrders();
   }
+
   function renderOrders() {
     const container = document.getElementById('main-container');
-    const filtered = currentFilter === 'all' ? allOrders : allOrders.filter(o => o.status === currentFilter);
-    if (filtered.length === 0) { container.innerHTML = '<div class="empty-state"><div class="empty-icon">✓</div><p>No orders here.</p></div>'; return; }
-    container.innerHTML = filtered.map(o => {
-      const typeClass = o.order_type === 'EXCHANGE' ? 'type-exchange' : o.order_type === 'RETURN' ? 'type-return' : 'type-order';
-      const statusLabel = { pending: 'Pending', picked_up: 'Picked Up', delivered: 'Delivered', no_answer: 'No Answer' }[o.status] || o.status;
-      const amountIsRefund = o.amount_type === 'refund';
-      const hasAmount = o.amount && parseFloat(o.amount) > 0 && o.amount_type;
-      const amountChip = hasAmount ? '<div class="amount-chip ' + (amountIsRefund ? 'refund' : '') + '">' + (amountIsRefund ? '↩ Return' : '💰 Collect') + ' <strong>' + o.amount + ' KWD</strong></div>' : '';
-      const phone = (o.phone || '').replace(/[^0-9+]/g, '');
-      const amountLine = hasAmount ? '\n💰 ' + (amountIsRefund ? 'Return' : 'Collect') + ': ' + o.amount + ' KWD' : '';
-      const waMsg = encodeURIComponent(o.order_type + ' ' + o.order_name + '\n📍 ' + (o.address || '—') + '\n📞 ' + (o.phone || '—') + amountLine);
-      const contactRow = phone ? '<div class="contact-row"><a href="tel:' + phone + '" class="contact-btn btn-call">📞 Call</a><a href="https://wa.me/' + phone.replace('+','') + '?text=' + waMsg + '" target="_blank" class="contact-btn btn-wa">💬 WhatsApp</a></div>' : '';
-      return '<div class="order-card status-' + o.status + '" id="card-' + o.id + '"><div class="card-top"><div class="card-row1"><div class="card-left"><span class="type-pill ' + typeClass + '">' + o.order_type + '</span><span class="order-name">' + o.order_name + '</span></div><span class="status-badge sb-' + o.status + '">' + statusLabel + '</span></div>' + amountChip + '<div class="customer-name">' + (o.customer_name || '—') + '</div><div class="info-row"><span class="ic">📍</span><span>' + (o.address || '—') + '</span></div><div class="info-row"><span class="ic">📞</span><span>' + (o.phone || '—') + '</span></div>' + contactRow + '</div><div class="status-actions">' + (o.status !== 'picked_up' ? '<button class="sa-btn sa-pickup" onclick="updateStatus(\'' + o.id + '\',\'picked_up\',\'' + o.shopify_id + '\',\'' + o.order_type + '\')">📦 Picked Up</button>' : '<div></div>') + (o.status !== 'delivered' ? '<button class="sa-btn sa-delivered" onclick="updateStatus(\'' + o.id + '\',\'delivered\',\'' + o.shopify_id + '\',\'' + o.order_type + '\')">✅ Delivered</button>' : '<div></div>') + (o.status !== 'no_answer' ? '<button class="sa-btn sa-noanswer" onclick="updateStatus(\'' + o.id + '\',\'no_answer\',\'' + o.shopify_id + '\',\'' + o.order_type + '\')">📵 No Answer</button>' : '<div></div>') + (o.status !== 'pending' ? '<button class="sa-btn sa-reset" onclick="updateStatus(\'' + o.id + '\',\'pending\',\'' + o.shopify_id + '\',\'' + o.order_type + '\')">↩ Reset</button>' : '<div></div>') + '</div></div>';
-    }).join('');
+    const filtered = currentFilter === 'all'
+      ? allOrders
+      : allOrders.filter(o => o.status === currentFilter);
+
+    if (filtered.length === 0) {
+      const msgs = {
+        all: { icon: '📭', text: 'No orders assigned yet.' },
+        pending: { icon: '✓', text: 'No pending orders.' },
+        picked_up: { icon: '🚗', text: 'Nothing picked up yet.' },
+        delivered: { icon: '🎉', text: 'No deliveries completed yet.' },
+        no_answer: { icon: '📵', text: 'No unanswered orders.' },
+      };
+      const m = msgs[currentFilter] || msgs.all;
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">' + m.icon + '</div><p>' + m.text + '</p></div>';
+      return;
+    }
+
+    // Sort: pending first, then picked_up, then no_answer, then delivered
+    const order = { pending: 0, picked_up: 1, no_answer: 2, delivered: 3 };
+    const sorted = [...filtered].sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9));
+
+    container.innerHTML = sorted.map(o => buildCard(o)).join('');
   }
+
+  function buildCard(o) {
+    const typeClass = o.order_type === 'EXCHANGE' ? 'type-exchange'
+                    : o.order_type === 'RETURN'   ? 'type-return'
+                    : 'type-order';
+
+    const statusLabels = { pending: 'Pending', picked_up: 'Picked Up', delivered: 'Delivered', no_answer: 'No Answer' };
+    const statusLabel = statusLabels[o.status] || o.status;
+
+    const dotClass = 'dot-' + o.status;
+    const slClass  = 'sl-'  + o.status;
+
+    // Amount banner
+    const hasAmount = o.amount && parseFloat(o.amount) > 0 && o.amount_type;
+    const isRefund  = o.amount_type === 'refund';
+    let amountBanner = '';
+    if (hasAmount) {
+      const bannerClass = isRefund ? 'refund' : 'collect';
+      const icon  = isRefund ? '↩' : '💵';
+      const label = isRefund ? 'Give Back to Customer' : 'Collect from Customer';
+      amountBanner = `
+        <div class="amount-banner ${bannerClass}">
+          <div>
+            <div class="amount-banner-label">${label}</div>
+            <div class="amount-banner-value">${parseFloat(o.amount).toFixed(3)} KWD</div>
+          </div>
+          <div class="amount-banner-icon">${icon}</div>
+        </div>`;
+    }
+
+    // Contact
+    const phone = (o.phone || '').replace(/[^0-9+]/g, '');
+    const amountLine = hasAmount ? '\n' + (isRefund ? '↩ Return' : '💵 Collect') + ': ' + parseFloat(o.amount).toFixed(3) + ' KWD' : '';
+    const waMsg = encodeURIComponent(
+      o.order_type + ' ' + o.order_name +
+      '\n📍 ' + (o.address || '—') +
+      '\n📞 ' + (o.phone || '—') +
+      amountLine
+    );
+    const contactRow = phone ? `
+      <div class="contact-row">
+        <a href="tel:${phone}" class="contact-btn btn-call">📞 Call</a>
+        <a href="https://wa.me/${phone.replace('+','')}?text=${waMsg}" target="_blank" class="contact-btn btn-wa">💬 WhatsApp</a>
+      </div>` : '';
+
+    // Actions — context-aware based on current status
+    let actionsHtml = '';
+    if (o.status === 'pending') {
+      actionsHtml = `
+        <div class="card-actions">
+          <button class="action-primary ap-pickup" onclick="updateStatus(${o.id},'picked_up','${o.shopify_id}','${o.order_type}')">
+            📦 Picked Up — On My Way
+          </button>
+          <div class="action-secondary-row">
+            <button class="action-secondary as-noanswer" onclick="updateStatus(${o.id},'no_answer','${o.shopify_id}','${o.order_type}')">
+              📵 No Answer
+            </button>
+          </div>
+        </div>`;
+    } else if (o.status === 'picked_up') {
+      actionsHtml = `
+        <div class="card-actions">
+          <button class="action-primary ap-delivered" onclick="updateStatus(${o.id},'delivered','${o.shopify_id}','${o.order_type}')">
+            ✅ Mark as Delivered
+          </button>
+          <div class="action-secondary-row">
+            <button class="action-secondary as-noanswer" onclick="updateStatus(${o.id},'no_answer','${o.shopify_id}','${o.order_type}')">
+              📵 No Answer
+            </button>
+            <button class="action-secondary as-reset" onclick="updateStatus(${o.id},'pending','${o.shopify_id}','${o.order_type}')">
+              ↩ Reset
+            </button>
+          </div>
+        </div>`;
+    } else if (o.status === 'no_answer') {
+      actionsHtml = `
+        <div class="card-actions">
+          <button class="action-primary ap-pickup" onclick="updateStatus(${o.id},'picked_up','${o.shopify_id}','${o.order_type}')">
+            📦 Picked Up — On My Way
+          </button>
+          <div class="action-secondary-row">
+            <button class="action-secondary as-delivered" onclick="updateStatus(${o.id},'delivered','${o.shopify_id}','${o.order_type}')">
+              ✅ Delivered
+            </button>
+            <button class="action-secondary as-reset" onclick="updateStatus(${o.id},'pending','${o.shopify_id}','${o.order_type}')">
+              ↩ Reset
+            </button>
+          </div>
+        </div>`;
+    } else if (o.status === 'delivered') {
+      // Delivered: collapsed, just show a reset option subtly
+      actionsHtml = `
+        <div style="padding: 10px 16px 14px;">
+          <button class="action-secondary as-reset" style="width:100%;" onclick="updateStatus(${o.id},'pending','${o.shopify_id}','${o.order_type}')">
+            ↩ Undo Delivery
+          </button>
+        </div>`;
+    }
+
+    return `
+      <div class="order-card status-${o.status}" id="card-${o.id}">
+        <div class="card-header">
+          <div class="card-header-left">
+            <div class="card-order-num">${o.order_name}</div>
+            <div class="card-meta">
+              <span class="type-pill ${typeClass}">${o.order_type}</span>
+              <span class="status-dot ${dotClass}"></span>
+              <span class="status-label ${slClass}">${statusLabel}</span>
+            </div>
+          </div>
+        </div>
+        ${amountBanner}
+        <div class="card-body">
+          <div class="customer-name">${o.customer_name || '—'}</div>
+          <div class="info-row"><span class="ic">📍</span><span>${(o.address || '—').replace(/\n/g, ', ')}</span></div>
+          <div class="info-row"><span class="ic">📞</span><span>${o.phone || '—'}</span></div>
+          ${contactRow}
+        </div>
+        <div class="card-divider"></div>
+        ${actionsHtml}
+      </div>`;
+  }
+
   async function updateStatus(id, status, shopifyId, orderType) {
     const o = allOrders.find(x => x.id === id);
     const prev = o ? o.status : null;
     if (o) o.status = status;
-    renderOrders(); updateCountBadge();
+    renderOrders();
+    updateCounts();
     try {
-      const res = await fetch('/api/deliveries/status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status, shopifyId, orderType }) });
+      const res = await fetch('/api/deliveries/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status, shopifyId, orderType }),
+      });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
-      const msgs = { picked_up: 'Picked Up — Shopify fulfilled!', delivered: 'Marked as Delivered', no_answer: 'Marked as No Answer', pending: 'Reset to Pending' };
+      const msgs = {
+        picked_up: '📦 Picked up!',
+        delivered: '✅ Delivered!',
+        no_answer: '📵 No Answer recorded',
+        pending: '↩ Reset to Pending',
+      };
       showToast(msgs[status] || status, 'success');
     } catch (err) {
       if (o) o.status = prev;
-      renderOrders(); updateCountBadge();
+      renderOrders();
+      updateCounts();
       showToast('Error: ' + err.message, 'error');
     }
   }
+
   function showToast(msg, type) {
     const toast = document.getElementById('toast');
     toast.textContent = msg;
     toast.className = 'toast show ' + (type || '');
     clearTimeout(toast._timer);
-    toast._timer = setTimeout(() => { toast.className = 'toast'; }, 3500);
+    toast._timer = setTimeout(() => { toast.className = 'toast'; }, 3000);
   }
+
   loadOrders();
   setInterval(loadOrders, 30000);
 </script>
