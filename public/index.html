@@ -745,10 +745,12 @@
 <!-- BULK BAR -->
 <div class="bulk-bar" id="bulk-bar">
   <span class="bulk-bar-label" id="bulk-label">0 selected</span>
-  <button class="bulk-btn bulk-btn-label"   onclick="bulkPrint('label')"   id="bulk-btn-label">Labels</button>
-  <button class="bulk-btn bulk-btn-invoice" onclick="bulkPrint('invoice')" id="bulk-btn-invoice">Invoices</button>
-  <button class="bulk-btn bulk-btn-packing" onclick="bulkPrint('packing')" id="bulk-btn-packing">Slips</button>
-  <button class="bulk-btn bulk-btn-all"     onclick="bulkPrint('all')"     id="bulk-btn-all">Print All</button>
+  <button class="bulk-btn bulk-btn-label"    onclick="bulkPrint('label')"   id="bulk-btn-label">Labels</button>
+  <button class="bulk-btn bulk-btn-invoice"  onclick="bulkPrint('invoice')" id="bulk-btn-invoice">Invoices</button>
+  <button class="bulk-btn bulk-btn-packing"  onclick="bulkPrint('packing')" id="bulk-btn-packing">Slips</button>
+  <button class="bulk-btn bulk-btn-all"      onclick="bulkPrint('all')"     id="bulk-btn-all">Print All</button>
+  <button class="bulk-btn bulk-btn-driver"   onclick="bulkAssignDriver()"   id="bulk-btn-driver" style="background:#2e7d32;border-color:#2e7d32;">🚗 Assign</button>
+  <button class="bulk-btn bulk-btn-unassign" onclick="bulkUnassignDriver()" id="bulk-btn-unassign" style="background:#c0392b;border-color:#c0392b;">✕ Unassign</button>
 </div>
 
 <!-- WAREHOUSE SECTION -->
@@ -1387,6 +1389,95 @@
         btn.innerHTML = '<span class="btn-icon">🚗</span>Driver';
       }
     }
+  }
+
+  async function bulkAssignDriver() {
+    const indexes = [...selectedIndexes].sort((a, b) => a - b);
+    if (indexes.length === 0) return;
+    const btn = document.getElementById('bulk-btn-driver');
+    btn.disabled = true;
+    btn.textContent = '⏳ Assigning...';
+    let done = 0, skipped = 0;
+    for (const idx of indexes) {
+      const order = ordersData[idx];
+      try {
+        const res = await fetch('/api/assign-driver', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderName: order.name,
+            shopifyId: order.shopifyId,
+            customerName: order.customerName,
+            address: order.address,
+            phone: order.phone,
+            total: order.total,
+            amountToCollect: order.amountToCollect,
+            refundAmount: order.refundAmount,
+            isExchange: order.isExchange,
+            isReturn: order.isReturn,
+            orderType: order.isReturn ? 'RETURN' : order.isExchange ? 'EXCHANGE' : 'ORDER',
+          }),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        if (data.alreadyAssigned) {
+          skipped++;
+        } else {
+          done++;
+          // Update the individual driver button state
+          const driverBtn = document.getElementById(`btn-driver-${idx}`);
+          if (driverBtn) {
+            driverBtn.classList.add('assigned');
+            driverBtn.innerHTML = '<span class="btn-icon">✅</span>Assigned';
+          }
+        }
+      } catch (err) {
+        showToast(`❌ ${order.name}: ${err.message}`, 'error');
+        await sleep(1000);
+      }
+    }
+    btn.disabled = false;
+    btn.textContent = '🚗 Assign';
+    const parts = [];
+    if (done > 0) parts.push(`${done} assigned`);
+    if (skipped > 0) parts.push(`${skipped} already assigned`);
+    showToast('✅ ' + parts.join(', '), 'success');
+  }
+
+  async function bulkUnassignDriver() {
+    const indexes = [...selectedIndexes].sort((a, b) => a - b);
+    if (indexes.length === 0) return;
+    const names = indexes.map(i => ordersData[i].name).join(', ');
+    if (!confirm(`Remove ${indexes.length} order(s) from driver queue?\n${names}`)) return;
+    const btn = document.getElementById('bulk-btn-unassign');
+    btn.disabled = true;
+    btn.textContent = '⏳ Removing...';
+    let done = 0;
+    for (const idx of indexes) {
+      const order = ordersData[idx];
+      try {
+        const res = await fetch('/api/unassign-driver', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderName: order.name }),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        done++;
+        // Update the individual driver button state
+        const driverBtn = document.getElementById(`btn-driver-${idx}`);
+        if (driverBtn) {
+          driverBtn.classList.remove('assigned');
+          driverBtn.innerHTML = '<span class="btn-icon">🚗</span>Driver';
+        }
+      } catch (err) {
+        showToast(`❌ ${order.name}: ${err.message}`, 'error');
+        await sleep(1000);
+      }
+    }
+    btn.disabled = false;
+    btn.textContent = '✕ Unassign';
+    showToast(`✓ ${done} order(s) removed from driver queue.`, 'info');
   }
 
   async function archiveOrder(idx) {
