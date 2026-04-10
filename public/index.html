@@ -302,6 +302,58 @@
       border: 1px solid var(--gray-200);
     }
 
+    /* ── ACTIVITY STRIP ── */
+    .activity-strip {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding: 8px 18px;
+      background: var(--gray-50);
+      border-top: 1px solid var(--gray-100);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .activity-strip::-webkit-scrollbar { display: none; }
+    .activity-step {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .activity-pill {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 9px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .activity-pill.done {
+      background: #e8f5e9;
+      color: #1a7a4a;
+      border: 1px solid #b2dfdb;
+    }
+    .activity-pill.pending {
+      background: var(--gray-100);
+      color: var(--gray-400);
+      border: 1px solid var(--gray-200);
+    }
+    .activity-pill.done .apill-icon { opacity: 1; }
+    .activity-pill.pending .apill-icon { opacity: 0.4; }
+    .activity-connector {
+      width: 14px;
+      height: 1px;
+      background: var(--gray-200);
+      flex-shrink: 0;
+      margin: 0 1px;
+    }
+    .activity-connector.done { background: #b2dfdb; }
+
     .order-header-right {
       display: flex;
       align-items: center;
@@ -1087,6 +1139,26 @@
         ? `<span class="print-badge" title="Label:${hist.label||0} Invoice:${hist.invoice||0} Slip:${hist.packing||0}">Printed ${totalPrints}x</span>`
         : '';
 
+      // Activity strip — build from order.activity array
+      const activityStrip = (() => {
+        const steps = order.activity || [];
+        if (steps.length === 0) return '';
+        const pills = steps.map((step, i) => {
+          const cls = step.done ? 'done' : 'pending';
+          const connector = i < steps.length - 1
+            ? `<div class="activity-connector${step.done ? ' done' : ''}"></div>`
+            : '';
+          return `<div class="activity-step">
+            <div class="activity-pill ${cls}">
+              <span class="apill-icon">${step.icon}</span>
+              <span>${step.label}</span>
+            </div>
+            ${connector}
+          </div>`;
+        }).join('');
+        return `<div class="activity-strip">${pills}</div>`;
+      })();
+
       const typeClass = order.isReturn ? 'type-return' : order.isExchange ? 'type-exchange' : 'type-unfulfilled';
       const typeLabel = order.isReturn ? 'Return' : order.isExchange ? 'Exchange' : 'Order';
 
@@ -1105,6 +1177,7 @@
               <span class="chevron">▼</span>
             </div>
           </div>
+          ${activityStrip}
           <div class="order-body">
             <div class="info-grid">
               <div class="info-item">
@@ -1144,8 +1217,8 @@
               <button class="btn btn-printall" onclick="printAll(${idx})"         id="btn-printall-${idx}">
                 <span class="btn-icon">⚡</span>Print All
               </button>
-              <button class="btn btn-driver"   onclick="assignDriver(${idx})"      id="btn-driver-${idx}">
-                <span class="btn-icon">🚗</span>Driver
+              <button class="btn btn-driver ${order.driverStatus ? 'assigned' : ''}" onclick="assignDriver(${idx})" id="btn-driver-${idx}">
+                <span class="btn-icon">${order.driverStatus ? '✅' : '🚗'}</span>${order.driverStatus ? 'Assigned' : 'Driver'}
               </button>
               <button class="btn btn-archive"  onclick="archiveOrder(${idx})"     id="btn-archive-${idx}">
                 <span class="btn-icon">📁</span>Archive

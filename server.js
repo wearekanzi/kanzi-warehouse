@@ -220,7 +220,32 @@ app.get('/api/orders', async (req, res) => {
       };
     }
 
-    const orders = allEdges.map(mapOrder);
+    // Enrich orders with activity data from print history + deliveries
+    const printHistory = loadHistory();
+    let deliveryMap = {};
+    try {
+      const deliveries = await supabase('GET', '/deliveries?order=created_at.desc&limit=500');
+      (deliveries || []).forEach(d => { deliveryMap[d.order_name] = d; });
+    } catch (e) { /* non-fatal */ }
+
+    const orders = allEdges.map(e => {
+      const order = mapOrder(e);
+      const ph = printHistory[order.name] || {};
+      const delivery = deliveryMap[order.name];
+
+      // Build activity array: each item = { event, done }
+      const activity = [
+        { key: 'label',    label: 'Label',    icon: '🏷️',  done: !!(ph.label   > 0) },
+        { key: 'invoice',  label: 'Invoice',  icon: '🧾',  done: !!(ph.invoice > 0) },
+        { key: 'slip',     label: 'Slip',     icon: '📋',  done: !!(ph.packing > 0) },
+        { key: 'driver',   label: 'Assigned', icon: '🚗',  done: !!delivery },
+        { key: 'pickedup', label: 'Picked Up',icon: '📦',  done: !!(delivery && (delivery.status === 'picked_up' || delivery.status === 'delivered')) },
+        { key: 'delivered',label: 'Delivered',icon: '✅',  done: !!(delivery && delivery.status === 'delivered') },
+      ];
+
+      return { ...order, activity, driverStatus: delivery?.status || null };
+    });
+
     res.json({ success: true, orders });
   } catch (err) {
     console.error('Error fetching orders:', err.message);
