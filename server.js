@@ -178,18 +178,29 @@ app.get('/api/orders', async (req, res) => {
         ? o.lineItems.edges
         : o.lineItems.edges.filter(li => li.node.fulfillableQuantity > 0);
 
-      // Amount: outstanding = currentTotal - totalReceived
-      // COD orders have totalReceived=0 → outstanding = full amount
-      // Pre-paid orders have totalReceived=currentTotal → outstanding = 0
-      // Return orders: refund amount = totalReceived - currentTotal (if positive)
+      // Amount calculations:
+      // - outstanding (collect): currentTotal - totalReceived > 0  → driver collects from customer
+      // - refund (return):       totalReceived - currentTotal > 0  → driver gives money back to customer
+      // This covers: COD orders, pre-paid, exchanges with balance due, exchanges with overpayment, and return pickups
       const currency = o.totalPriceSet.shopMoney.currencyCode;
       const currentTotal = parseFloat(o.currentTotalPriceSet?.shopMoney?.amount || o.totalPriceSet.shopMoney.amount);
       const totalReceived = parseFloat(o.totalReceivedSet?.shopMoney?.amount || 0);
-      const outstanding = Math.max(0, currentTotal - totalReceived);
-      // For return orders: refund = original total paid minus current adjusted total
-      // (e.g. paid 21.9, current order worth 2.0 after return → refund = 19.9)
       const originalTotal = parseFloat(o.totalPriceSet.shopMoney.amount);
-      const refund = isReturn ? Math.max(0, originalTotal - currentTotal) : 0;
+
+      // For return orders: refund = original total - current total (item returned, partial refund)
+      // For exchange/regular: use totalReceived vs currentTotal
+      let outstanding = 0;
+      let refund = 0;
+      if (isReturn) {
+        refund = Math.max(0, originalTotal - currentTotal);
+      } else {
+        const diff = currentTotal - totalReceived;
+        if (diff > 0.001) {
+          outstanding = diff; // driver collects
+        } else if (diff < -0.001) {
+          refund = Math.abs(diff); // driver returns money (exchange overpayment)
+        }
+      }
 
       return {
         id: o.id,
@@ -416,11 +427,22 @@ app.post('/api/assign-driver', async (req, res) => {
       rawAmount = parseFloat(refundParts[0]) || 0;
       amount_type = rawAmount > 0 ? 'refund' : null;
     } else {
-      // For regular/exchange orders: driver collects outstanding balance
-      const collectSource = amountToCollect || total || '';
-      const amountParts = String(collectSource).split(' ');
-      rawAmount = parseFloat(amountParts[0]) || 0;
-      amount_type = rawAmount > 0 ? 'collect' : null;
+      // For regular/exchange orders:
+      // - If refundAmount is set (exchange overpayment), driver gives money back
+      // - Otherwise driver collects outstanding balance
+      const refundSource = req.body.refundAmount || '';
+      const refundParts = String(refundSource).split(' ');
+      const refundAmt = parseFloat(refundParts[0]) || 0;
+
+      if (refundAmt > 0) {
+        rawAmount = refundAmt;
+        amount_type = 'refund';
+      } else {
+        const collectSource = amountToCollect || total || '';
+        const amountParts = String(collectSource).split(' ');
+        rawAmount = parseFloat(amountParts[0]) || 0;
+        amount_type = rawAmount > 0 ? 'collect' : null;
+      }
     }
 
     const amount = rawAmount > 0 ? String(rawAmount) : '';
