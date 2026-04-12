@@ -306,7 +306,8 @@
     }
     .contact-btn:active { transform: scale(0.95); }
     .btn-call { background: var(--gray-3); color: var(--black); border: 1px solid var(--gray-4); }
-    .btn-wa   { background: #25d366; color: white; }
+    .btn-wa        { background: #25d366; color: white; }
+    .btn-wa-driver  { background: #128c7e; color: white; }
 
     /* ── DIVIDER ── */
     .card-divider { height: 1px; background: var(--border); margin: 0 16px; }
@@ -563,10 +564,20 @@
       '\n📞 ' + (o.phone || '—') +
       amountLine
     );
+    const waDriverMsg = encodeURIComponent(
+      o.order_type + ' ' + o.order_name +
+      '\n👤 ' + (o.customer_name || '—') +
+      '\n📍 ' + (o.address || '—') +
+      '\n📞 ' + (o.phone || '—') +
+      amountLine
+    );
     const contactRow = phone ? `
       <div class="contact-row">
         <a href="tel:${phone}" class="contact-btn btn-call">📞 Call</a>
         <a href="https://wa.me/${phone.replace('+','')}?text=${waMsg}" target="_blank" class="contact-btn btn-wa">💬 WhatsApp</a>
+      </div>
+      <div class="contact-row" style="margin-top:8px">
+        <a href="https://wa.me/919505152579?text=${waDriverMsg}" target="_blank" class="contact-btn btn-wa-driver" style="flex:1">🚗 WhatsApp Driver</a>
       </div>` : '';
 
     // Actions — context-aware based on current status
