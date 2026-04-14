@@ -428,11 +428,7 @@
 
 <!-- Type filter chips -->
 <div class="summary-bar" id="summary-bar">
-  <div class="summary-chip active" id="chip-all" onclick="setFilter('all')">
-    <span class="chip-count" id="cnt-all">—</span>
-    <span class="chip-label">All</span>
-  </div>
-  <div class="summary-chip chip-pending" id="chip-ORDER" onclick="setFilter('ORDER')">
+  <div class="summary-chip chip-pending active" id="chip-ORDER" onclick="setFilter('ORDER')">
     <span class="chip-count" id="cnt-ORDER">—</span>
     <span class="chip-label">New</span>
   </div>
@@ -444,6 +440,14 @@
     <span class="chip-count" id="cnt-RETURN">—</span>
     <span class="chip-label">Returns</span>
   </div>
+  <div class="summary-chip chip-delivered" id="chip-done" onclick="setFilter('done')">
+    <span class="chip-count" id="cnt-done">—</span>
+    <span class="chip-label">Done</span>
+  </div>
+  <div class="summary-chip" id="chip-all" onclick="setFilter('all')">
+    <span class="chip-count" id="cnt-all">—</span>
+    <span class="chip-label">All</span>
+  </div>
 </div>
 
 <div class="main" id="main-container">
@@ -454,7 +458,7 @@
 
 <script>
   let allOrders = [];
-  let currentFilter = 'all';
+  let currentFilter = 'ORDER';
 
   async function loadOrders() {
     const btn = document.getElementById('refresh-btn');
@@ -477,20 +481,24 @@
   }
 
   function updateCounts() {
-    const types = ['all', 'ORDER', 'EXCHANGE', 'RETURN'];
-    types.forEach(t => {
-      const active = allOrders.filter(o => o.status !== 'delivered');
-      const count = t === 'all'
-        ? active.length
-        : active.filter(o => o.order_type === t).length;
-      const el = document.getElementById('cnt-' + t);
-      if (el) el.textContent = count;
+    const active = allOrders.filter(o => o.status !== 'delivered');
+    const done   = allOrders.filter(o => o.status === 'delivered');
+    const map = {
+      'ORDER':    active.filter(o => o.order_type === 'ORDER').length,
+      'EXCHANGE': active.filter(o => o.order_type === 'EXCHANGE').length,
+      'RETURN':   active.filter(o => o.order_type === 'RETURN').length,
+      'done':     done.length,
+      'all':      allOrders.length,
+    };
+    Object.entries(map).forEach(([k, v]) => {
+      const el = document.getElementById('cnt-' + k);
+      if (el) el.textContent = v;
     });
   }
 
   function setFilter(f) {
     currentFilter = f;
-    ['all', 'ORDER', 'EXCHANGE', 'RETURN'].forEach(id => {
+    ['ORDER', 'EXCHANGE', 'RETURN', 'done', 'all'].forEach(id => {
       const chip = document.getElementById('chip-' + id);
       if (chip) chip.classList.toggle('active', id === f);
     });
@@ -500,11 +508,20 @@
   function renderOrders() {
     const container = document.getElementById('main-container');
 
-    // Active = not delivered; Done = delivered
     const active = allOrders.filter(o => o.status !== 'delivered');
     const done   = allOrders.filter(o => o.status === 'delivered');
 
-    // Apply type filter to active orders
+    // Done tab: show only delivered orders
+    if (currentFilter === 'done') {
+      if (done.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-icon">🎉</div><p>No completed orders yet.</p></div>';
+      } else {
+        container.innerHTML = done.map(o => buildCard(o)).join('');
+      }
+      return;
+    }
+
+    // All tab: show everything active
     const filtered = currentFilter === 'all'
       ? active
       : active.filter(o => o.order_type === currentFilter);
@@ -513,23 +530,15 @@
     const statusOrder = { pending: 0, picked_up: 1, no_answer: 2 };
     const sorted = [...filtered].sort((a, b) => (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9));
 
-    let html = '';
-
-    if (sorted.length === 0 && done.length === 0) {
-      html = '<div class="empty-state"><div class="empty-icon">📭</div><p>No orders assigned yet.</p></div>';
-    } else if (sorted.length === 0) {
-      html = '<div class="empty-state"><div class="empty-icon">✓</div><p>All done for this category!</p></div>';
-    } else {
-      html = sorted.map(o => buildCard(o)).join('');
+    if (sorted.length === 0) {
+      const empty = active.length === 0 && done.length === 0
+        ? { icon: '📭', text: 'No orders assigned yet.' }
+        : { icon: '✓', text: 'All done for this category!' };
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">' + empty.icon + '</div><p>' + empty.text + '</p></div>';
+      return;
     }
 
-    // Done section — always show at bottom when there are delivered orders
-    if (done.length > 0) {
-      html += '<div class="section-label" style="margin-top:20px">✅ Done (' + done.length + ')</div>';
-      html += done.map(o => buildCard(o)).join('');
-    }
-
-    container.innerHTML = html;
+    container.innerHTML = sorted.map(o => buildCard(o)).join('');
   }
 
   function buildCard(o) {
