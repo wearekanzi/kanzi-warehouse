@@ -589,19 +589,35 @@
       </div>` : '';
 
     // Actions — context-aware based on current status
+    const isReturnOrder = o.order_type === 'RETURN';
     let actionsHtml = '';
     if (o.status === 'pending') {
-      actionsHtml = `
-        <div class="card-actions">
-          <button class="action-primary ap-pickup" onclick="updateStatus(${o.id},'picked_up','${o.shopify_id}','${o.order_type}')">
-            📦 Picked Up — On My Way
-          </button>
-          <div class="action-secondary-row">
-            <button class="action-secondary as-noanswer" onclick="updateStatus(${o.id},'no_answer','${o.shopify_id}','${o.order_type}')">
-              📵 No Answer
+      if (isReturnOrder) {
+        // Return orders: single action — mark as returned (goes straight to delivered/done)
+        actionsHtml = `
+          <div class="card-actions">
+            <button class="action-primary ap-delivered" onclick="updateStatus(${o.id},'delivered','${o.shopify_id}','${o.order_type}')">
+              ✅ Returned — Item Collected
             </button>
-          </div>
-        </div>`;
+            <div class="action-secondary-row">
+              <button class="action-secondary as-noanswer" onclick="updateStatus(${o.id},'no_answer','${o.shopify_id}','${o.order_type}')">
+                📵 No Answer
+              </button>
+            </div>
+          </div>`;
+      } else {
+        actionsHtml = `
+          <div class="card-actions">
+            <button class="action-primary ap-pickup" onclick="updateStatus(${o.id},'picked_up','${o.shopify_id}','${o.order_type}')">
+              📦 Picked Up — On My Way
+            </button>
+            <div class="action-secondary-row">
+              <button class="action-secondary as-noanswer" onclick="updateStatus(${o.id},'no_answer','${o.shopify_id}','${o.order_type}')">
+                📵 No Answer
+              </button>
+            </div>
+          </div>`;
+      }
     } else if (o.status === 'picked_up') {
       actionsHtml = `
         <div class="card-actions">
