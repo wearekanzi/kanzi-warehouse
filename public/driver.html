@@ -426,27 +426,23 @@
   </div>
 </header>
 
-<!-- Summary / filter chips -->
+<!-- Type filter chips -->
 <div class="summary-bar" id="summary-bar">
   <div class="summary-chip active" id="chip-all" onclick="setFilter('all')">
     <span class="chip-count" id="cnt-all">—</span>
     <span class="chip-label">All</span>
   </div>
-  <div class="summary-chip chip-pending" id="chip-pending" onclick="setFilter('pending')">
-    <span class="chip-count" id="cnt-pending">—</span>
-    <span class="chip-label">Pending</span>
+  <div class="summary-chip chip-pending" id="chip-ORDER" onclick="setFilter('ORDER')">
+    <span class="chip-count" id="cnt-ORDER">—</span>
+    <span class="chip-label">New</span>
   </div>
-  <div class="summary-chip chip-pickedup" id="chip-picked_up" onclick="setFilter('picked_up')">
-    <span class="chip-count" id="cnt-picked_up">—</span>
-    <span class="chip-label">Picked Up</span>
+  <div class="summary-chip chip-pickedup" id="chip-EXCHANGE" onclick="setFilter('EXCHANGE')">
+    <span class="chip-count" id="cnt-EXCHANGE">—</span>
+    <span class="chip-label">Exchange</span>
   </div>
-  <div class="summary-chip chip-delivered" id="chip-delivered" onclick="setFilter('delivered')">
-    <span class="chip-count" id="cnt-delivered">—</span>
-    <span class="chip-label">Delivered</span>
-  </div>
-  <div class="summary-chip chip-noanswer" id="chip-no_answer" onclick="setFilter('no_answer')">
-    <span class="chip-count" id="cnt-no_answer">—</span>
-    <span class="chip-label">No Answer</span>
+  <div class="summary-chip chip-noanswer" id="chip-RETURN" onclick="setFilter('RETURN')">
+    <span class="chip-count" id="cnt-RETURN">—</span>
+    <span class="chip-label">Returns</span>
   </div>
 </div>
 
@@ -481,19 +477,20 @@
   }
 
   function updateCounts() {
-    const statuses = ['all', 'pending', 'picked_up', 'delivered', 'no_answer'];
-    statuses.forEach(s => {
-      const count = s === 'all'
-        ? allOrders.length
-        : allOrders.filter(o => o.status === s).length;
-      const el = document.getElementById('cnt-' + s);
+    const types = ['all', 'ORDER', 'EXCHANGE', 'RETURN'];
+    types.forEach(t => {
+      const active = allOrders.filter(o => o.status !== 'delivered');
+      const count = t === 'all'
+        ? active.length
+        : active.filter(o => o.order_type === t).length;
+      const el = document.getElementById('cnt-' + t);
       if (el) el.textContent = count;
     });
   }
 
   function setFilter(f) {
     currentFilter = f;
-    ['all', 'pending', 'picked_up', 'delivered', 'no_answer'].forEach(id => {
+    ['all', 'ORDER', 'EXCHANGE', 'RETURN'].forEach(id => {
       const chip = document.getElementById('chip-' + id);
       if (chip) chip.classList.toggle('active', id === f);
     });
@@ -502,28 +499,37 @@
 
   function renderOrders() {
     const container = document.getElementById('main-container');
-    const filtered = currentFilter === 'all'
-      ? allOrders
-      : allOrders.filter(o => o.status === currentFilter);
 
-    if (filtered.length === 0) {
-      const msgs = {
-        all: { icon: '📭', text: 'No orders assigned yet.' },
-        pending: { icon: '✓', text: 'No pending orders.' },
-        picked_up: { icon: '🚗', text: 'Nothing picked up yet.' },
-        delivered: { icon: '🎉', text: 'No deliveries completed yet.' },
-        no_answer: { icon: '📵', text: 'No unanswered orders.' },
-      };
-      const m = msgs[currentFilter] || msgs.all;
-      container.innerHTML = '<div class="empty-state"><div class="empty-icon">' + m.icon + '</div><p>' + m.text + '</p></div>';
-      return;
+    // Active = not delivered; Done = delivered
+    const active = allOrders.filter(o => o.status !== 'delivered');
+    const done   = allOrders.filter(o => o.status === 'delivered');
+
+    // Apply type filter to active orders
+    const filtered = currentFilter === 'all'
+      ? active
+      : active.filter(o => o.order_type === currentFilter);
+
+    // Sort active: pending → picked_up → no_answer
+    const statusOrder = { pending: 0, picked_up: 1, no_answer: 2 };
+    const sorted = [...filtered].sort((a, b) => (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9));
+
+    let html = '';
+
+    if (sorted.length === 0 && done.length === 0) {
+      html = '<div class="empty-state"><div class="empty-icon">📭</div><p>No orders assigned yet.</p></div>';
+    } else if (sorted.length === 0) {
+      html = '<div class="empty-state"><div class="empty-icon">✓</div><p>All done for this category!</p></div>';
+    } else {
+      html = sorted.map(o => buildCard(o)).join('');
     }
 
-    // Sort: pending first, then picked_up, then no_answer, then delivered
-    const order = { pending: 0, picked_up: 1, no_answer: 2, delivered: 3 };
-    const sorted = [...filtered].sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9));
+    // Done section — always show at bottom when there are delivered orders
+    if (done.length > 0) {
+      html += '<div class="section-label" style="margin-top:20px">✅ Done (' + done.length + ')</div>';
+      html += done.map(o => buildCard(o)).join('');
+    }
 
-    container.innerHTML = sorted.map(o => buildCard(o)).join('');
+    container.innerHTML = html;
   }
 
   function buildCard(o) {
