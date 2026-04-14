@@ -444,10 +444,6 @@
     <span class="chip-count" id="cnt-done">—</span>
     <span class="chip-label">Done</span>
   </div>
-  <div class="summary-chip" id="chip-all" onclick="setFilter('all')">
-    <span class="chip-count" id="cnt-all">—</span>
-    <span class="chip-label">All</span>
-  </div>
 </div>
 
 <div class="main" id="main-container">
@@ -488,7 +484,6 @@
       'EXCHANGE': active.filter(o => o.order_type === 'EXCHANGE').length,
       'RETURN':   active.filter(o => o.order_type === 'RETURN').length,
       'done':     done.length,
-      'all':      allOrders.length,
     };
     Object.entries(map).forEach(([k, v]) => {
       const el = document.getElementById('cnt-' + k);
@@ -498,7 +493,7 @@
 
   function setFilter(f) {
     currentFilter = f;
-    ['ORDER', 'EXCHANGE', 'RETURN', 'done', 'all'].forEach(id => {
+    ['ORDER', 'EXCHANGE', 'RETURN', 'done'].forEach(id => {
       const chip = document.getElementById('chip-' + id);
       if (chip) chip.classList.toggle('active', id === f);
     });
@@ -521,10 +516,8 @@
       return;
     }
 
-    // All tab: show everything active
-    const filtered = currentFilter === 'all'
-      ? active
-      : active.filter(o => o.order_type === currentFilter);
+    // Filter by order type
+    const filtered = active.filter(o => o.order_type === currentFilter);
 
     // Sort active: pending → picked_up → no_answer
     const statusOrder = { pending: 0, picked_up: 1, no_answer: 2 };
