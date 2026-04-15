@@ -602,131 +602,119 @@
       border-bottom: 1px solid var(--gray-200);
     }
 
-    /* Delivery card — owner version */
+    /* ── DELIVERY CARDS (matches driver portal exactly) ── */
     .delivery-card {
-      background: var(--white);
-      border-radius: var(--radius);
-      margin-bottom: 10px;
-      box-shadow: var(--shadow);
+      background: #ffffff;
+      border-radius: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.06);
+      border: 1px solid #ebebeb;
       overflow: hidden;
-      border: 1px solid var(--gray-200);
-      border-left: 4px solid transparent;
       transition: box-shadow 0.2s;
     }
-    .delivery-card.status-pending   { border-left-color: var(--amber); }
-    .delivery-card.status-picked_up { border-left-color: var(--blue); }
-    .delivery-card.status-delivered { border-left-color: var(--green); opacity: 0.8; }
-    .delivery-card.status-no_answer { border-left-color: var(--red); }
-    .delivery-card:hover { box-shadow: var(--shadow-lg); }
+    .delivery-card.status-pending   { border-left: 4px solid #b06000; }
+    .delivery-card.status-picked_up { border-left: 4px solid #1a4fa0; }
+    .delivery-card.status-delivered { border-left: 4px solid #0a7a45; opacity: 0.78; }
+    .delivery-card.status-no_answer { border-left: 4px solid #c0392b; }
 
-    .dc-top { padding: 14px 16px 12px; }
-    .dc-row1 {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 8px;
-      gap: 8px;
-    }
-    .dc-left { display: flex; flex-direction: column; gap: 4px; }
-    .dc-order-name { font-size: 20px; font-weight: 900; color: var(--black); letter-spacing: -0.2px; line-height: 1; }
+    /* Card header */
+    .dc-top { padding: 14px 16px 0; }
+    .dc-row1 { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
+    .dc-left { display: flex; flex-direction: column; gap: 5px; }
+    .dc-order-name { font-size: 22px; font-weight: 900; color: #0a0a0a; letter-spacing: -0.3px; line-height: 1; }
     .dc-meta { display: flex; align-items: center; gap: 6px; }
 
-    .status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      border-radius: 5px;
-      padding: 4px 10px;
+    /* Type pills */
+    .type-pill {
+      border-radius: 6px;
+      padding: 2px 7px;
       font-size: 9px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.8px;
     }
-    .sp-pending    { background: var(--amber-bg); color: var(--amber); }
-    .sp-picked_up  { background: var(--blue-bg); color: var(--blue); }
-    .sp-delivered  { background: var(--green-bg); color: var(--green); }
-    .sp-no_answer  { background: var(--red-bg); color: var(--red); }
+    .type-order    { background: #f5f5f5; color: #505050; border: 1px solid #ebebeb; }
+    .type-exchange { background: #fdf5e6; color: #b06000; border: 1px solid #f0c878; }
+    .type-return   { background: #fdf0ee; color: #c0392b; border: 1px solid #e8b0aa; }
 
-    .amount-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: var(--green-bg);
-      border: 1px solid #a8dfc0;
-      color: var(--green);
-      border-radius: 6px;
-      padding: 5px 12px;
-      font-size: 12px;
-      font-weight: 800;
-      margin-bottom: 10px;
-      letter-spacing: 0.3px;
-    }
-    .amount-chip.refund {
-      background: var(--red-bg);
-      border-color: #e8b0aa;
-      color: var(--red);
-    }
+    /* Status dot + label */
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .dot-pending   { background: #b06000; }
+    .dot-picked_up { background: #1a4fa0; }
+    .dot-delivered { background: #0a7a45; }
+    .dot-no_answer { background: #c0392b; }
+    .status-label { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+    .sl-pending   { color: #b06000; }
+    .sl-picked_up { color: #1a4fa0; }
+    .sl-delivered { color: #0a7a45; }
+    .sl-no_answer { color: #c0392b; }
 
-    .dc-customer { font-size: 14px; font-weight: 700; color: var(--black); margin-bottom: 5px; }
-    .dc-info-line {
+    /* Amount banner */
+    .dc-amount-banner {
+      margin: 12px 16px 0;
+      border-radius: 10px;
+      padding: 12px 16px;
       display: flex;
-      align-items: flex-start;
-      gap: 7px;
-      font-size: 12px;
-      color: var(--gray-500);
-      font-weight: 500;
-      margin-bottom: 4px;
+      align-items: center;
+      justify-content: space-between;
     }
-    .dc-info-line .ic { flex-shrink: 0; font-size: 13px; }
+    .dc-amount-banner.collect { background: #e6f5ee; border: 1px solid #b3dfc9; }
+    .dc-amount-banner.refund  { background: #fdf0ee; border: 1px solid #e8b0aa; }
+    .dc-ab-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
+    .collect .dc-ab-label { color: #0a7a45; }
+    .refund  .dc-ab-label { color: #c0392b; }
+    .dc-ab-value { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; }
+    .collect .dc-ab-value { color: #0a7a45; }
+    .refund  .dc-ab-value { color: #c0392b; }
+    .dc-ab-icon { font-size: 22px; }
 
-    /* Owner override actions — compact, secondary */
+    /* Card body */
+    .dc-body { padding: 12px 16px 14px; }
+    .dc-customer { font-size: 15px; font-weight: 800; color: #0a0a0a; margin-bottom: 8px; }
+    .dc-info-line { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: #787878; font-weight: 500; margin-bottom: 5px; line-height: 1.5; }
+    .dc-info-line .ic { flex-shrink: 0; font-size: 13px; margin-top: 1px; }
+
+    /* Contact row */
+    .dc-contact-row { display: flex; gap: 8px; margin-top: 12px; }
+    .dc-contact-btn {
+      flex: 1; border: none; border-radius: 10px; padding: 11px 8px;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.2px;
+      cursor: pointer; font-family: 'Montserrat', sans-serif;
+      transition: all 0.15s; display: flex; align-items: center;
+      justify-content: center; gap: 5px; text-decoration: none;
+    }
+    .dc-contact-btn:active { transform: scale(0.95); }
+    .dc-btn-call { background: #f5f5f5; color: #0a0a0a; border: 1px solid #ebebeb; }
+    .dc-btn-wa   { background: #25d366; color: white; }
+
+    /* Card divider */
+    .dc-divider { height: 1px; background: #ebebeb; margin: 0 16px; }
+
+    /* Owner override actions */
     .dc-actions {
-      display: flex;
-      gap: 6px;
-      padding: 10px 16px 12px;
-      border-top: 1px solid var(--gray-100);
-      flex-wrap: wrap;
-      align-items: center;
+      padding: 12px 16px 14px;
     }
     .dc-actions-label {
-      font-size: 8px;
-      font-weight: 800;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--gray-400);
-      width: 100%;
-      margin-bottom: 2px;
+      font-size: 9px; font-weight: 800; letter-spacing: 1.2px;
+      text-transform: uppercase; color: #b0b0b0;
+      margin-bottom: 8px;
     }
+    .dc-override-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
     .da-btn {
-      border: 1px solid var(--gray-200);
-      border-radius: 6px;
-      padding: 7px 12px;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      cursor: pointer;
-      font-family: 'Montserrat', sans-serif;
-      transition: all 0.15s;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      background: var(--gray-100);
-      color: var(--gray-600);
+      border-radius: 8px; padding: 8px 12px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.3px;
+      cursor: pointer; font-family: 'Montserrat', sans-serif;
+      transition: all 0.15s; display: flex; align-items: center; gap: 4px;
+      border: 1px solid #ebebeb; background: #f5f5f5; color: #505050;
     }
     .da-btn:active { transform: scale(0.95); }
     .da-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .da-pickup    { background: var(--black); color: var(--white); border-color: var(--black); }
-    .da-pickup:hover    { background: var(--gray-700); }
-    .da-delivered { background: var(--green); color: var(--white); border-color: var(--green); }
-    .da-delivered:hover { background: #155a38; }
-    .da-noanswer  { background: var(--amber-bg); color: var(--amber); border-color: #f0d080; }
-    .da-noanswer:hover  { background: #f5e8b0; }
-    .da-reset     { background: var(--gray-100); color: var(--gray-600); border: 1px solid var(--gray-200); }
-    .da-reset:hover     { background: var(--gray-200); }
-    .da-whatsapp  { background: #e8faf0; color: #1a7a4a; border-color: #a8dfc0; }
-    .da-whatsapp:hover  { background: #d0f5e0; }
-    .da-unassign  { background: var(--red-bg); color: var(--red); border-color: #e8b0aa; margin-left: auto; }
-    .da-unassign:hover  { background: #fce0dc; }
+    .da-pickup    { background: #0a0a0a; color: white; border-color: #0a0a0a; }
+    .da-delivered { background: #0a7a45; color: white; border-color: #0a7a45; }
+    .da-noanswer  { background: #fdf5e6; color: #b06000; border-color: #f0c878; }
+    .da-reset     { background: #f5f5f5; color: #505050; border-color: #ebebeb; }
+    .da-unassign  { background: #fdf0ee; color: #c0392b; border-color: #e8b0aa; }
+    .da-returned  { background: #0a7a45; color: white; border-color: #0a7a45; width: 100%; justify-content: center; padding: 13px; font-size: 13px; border-radius: 10px; }
 
     /* ── TOAST ── */
     .toast {
@@ -985,24 +973,27 @@
                       : d.order_type === 'RETURN'   ? 'type-return'
                       : 'type-order';
       const statusLabel = { pending: 'Pending', picked_up: 'Picked Up', delivered: 'Delivered', no_answer: 'No Answer' }[d.status] || d.status;
-      const statusDot = { pending: '🟡', picked_up: '🔵', delivered: '🟢', no_answer: '🔴' }[d.status] || '⚪';
       const amountIsRefund = d.amount_type === 'refund';
       const hasAmount = d.amount && parseFloat(d.amount) > 0 && d.amount_type;
-      const amountChip = hasAmount
-        ? `<div class="amount-chip ${amountIsRefund ? 'refund' : ''}">${amountIsRefund ? '↩ Return' : '💰 Collect'}: <strong>${parseFloat(d.amount).toFixed(3)} KWD</strong></div>`
-        : '';
+      const amountBanner = hasAmount ? `
+        <div class="dc-amount-banner ${amountIsRefund ? 'refund' : 'collect'}">
+          <div>
+            <div class="dc-ab-label">${amountIsRefund ? 'Give Back to Customer' : 'Collect from Customer'}</div>
+            <div class="dc-ab-value">${parseFloat(d.amount).toFixed(3)} KWD</div>
+          </div>
+          <div class="dc-ab-icon">${amountIsRefund ? '↩' : '💰'}</div>
+        </div>` : '';
       const phone = (d.phone || '').replace(/[^0-9+]/g, '');
       const amountLine = hasAmount ? `\n${amountIsRefund ? '↩ Return' : '💰 Collect'}: ${parseFloat(d.amount).toFixed(3)} KWD` : '';
       const waMsg = encodeURIComponent(`${d.order_type} ${d.order_name}\n📍 ${d.address || '—'}\n📞 ${d.phone || '—'}${amountLine}`);
 
-      // Owner override actions — compact, all available
-      const overrideActions = [
-        d.status !== 'pending'   ? `<button class="da-btn da-reset"     onclick="updateDeliveryStatus(${d.id},'pending','${d.shopify_id}','${d.order_type}')">↩ Reset</button>` : '',
-        d.status !== 'picked_up' ? `<button class="da-btn da-pickup"    onclick="updateDeliveryStatus(${d.id},'picked_up','${d.shopify_id}','${d.order_type}')">📦 Picked Up</button>` : '',
-        d.status !== 'delivered' ? `<button class="da-btn da-delivered" onclick="updateDeliveryStatus(${d.id},'delivered','${d.shopify_id}','${d.order_type}')">✅ Delivered</button>` : '',
-        d.status !== 'no_answer' ? `<button class="da-btn da-noanswer"  onclick="updateDeliveryStatus(${d.id},'no_answer','${d.shopify_id}','${d.order_type}')">📵 No Answer</button>` : '',
-        phone ? `<a href="https://wa.me/${phone.replace('+','')}?text=${waMsg}" target="_blank" style="text-decoration:none;"><button class="da-btn da-whatsapp">💬 WhatsApp</button></a>` : '',
-        `<button class="da-btn da-unassign" onclick="unassignDelivery(${d.id},'${d.order_name}')">✕ Unassign</button>`,
+      // Owner override buttons — all statuses available
+      const isReturn = d.order_type === 'RETURN';
+      const overrideBtns = [
+        d.status !== 'pending'   ? `<button class="da-btn da-reset"    onclick="updateDeliveryStatus(${d.id},'pending','${d.shopify_id}','${d.order_type}')">↩ Reset</button>` : '',
+        (!isReturn && d.status !== 'picked_up') ? `<button class="da-btn da-pickup"   onclick="updateDeliveryStatus(${d.id},'picked_up','${d.shopify_id}','${d.order_type}')">📦 Picked Up</button>` : '',
+        d.status !== 'delivered' ? `<button class="da-btn da-delivered" onclick="updateDeliveryStatus(${d.id},'delivered','${d.shopify_id}','${d.order_type}')">${isReturn ? '✅ Returned' : '✅ Delivered'}</button>` : '',
+        d.status !== 'no_answer' ? `<button class="da-btn da-noanswer" onclick="updateDeliveryStatus(${d.id},'no_answer','${d.shopify_id}','${d.order_type}')">📵 No Answer</button>` : '',
       ].filter(Boolean).join('');
 
       return `
@@ -1012,19 +1003,28 @@
               <div class="dc-left">
                 <div class="dc-order-name">${d.order_name}</div>
                 <div class="dc-meta">
-                  <span class="order-type-pill ${typeClass}">${d.order_type}</span>
-                  <span class="status-pill sp-${d.status}">${statusDot} ${statusLabel}</span>
+                  <span class="type-pill ${typeClass}">${d.order_type}</span>
+                  <div class="status-dot dot-${d.status}"></div>
+                  <span class="status-label sl-${d.status}">${statusLabel}</span>
                 </div>
               </div>
             </div>
-            ${amountChip}
+          </div>
+          ${amountBanner}
+          <div class="dc-body">
             <div class="dc-customer">${d.customer_name || '—'}</div>
             <div class="dc-info-line"><span class="ic">📍</span>${(d.address || '—').replace(/\n/g, ', ')}</div>
             <div class="dc-info-line"><span class="ic">📞</span>${d.phone || '—'}</div>
+            <div class="dc-contact-row">
+              ${phone ? `<a href="tel:${phone}" class="dc-contact-btn dc-btn-call" style="text-decoration:none;">📞 Call</a>` : ''}
+              ${phone ? `<a href="https://wa.me/${phone.replace('+','')}?text=${waMsg}" target="_blank" class="dc-contact-btn dc-btn-wa" style="text-decoration:none;">💬 WhatsApp</a>` : ''}
+            </div>
           </div>
+          <div class="dc-divider"></div>
           <div class="dc-actions">
             <div class="dc-actions-label">Override Status</div>
-            ${overrideActions}
+            <div class="dc-override-row">${overrideBtns}</div>
+            <button class="da-btn da-unassign" style="width:100%;justify-content:center;" onclick="unassignDelivery(${d.id},'${d.order_name}')">✕ Remove from Driver Queue</button>
           </div>
         </div>`;
     }).join('');
