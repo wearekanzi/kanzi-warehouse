@@ -384,12 +384,60 @@ async function supabase(method, path, body) {
 app.get('/api/deliveries', async (req, res) => {
   try {
     const data = await supabase('GET', '/deliveries?order=created_at.desc&limit=200');
-    // Transliterate Arabic names and addresses for drivers who only read English
-    const deliveries = (data || []).map(d => ({
-      ...d,
-      customer_name: transliterate(d.customer_name || '') || d.customer_name || '',
-      address:       transliterate(d.address       || '') || d.address       || '',
-    }));
+    const rows = data || [];
+
+    // For active (non-delivered) orders, fetch live amounts from Shopify
+    // so any edits to the order (returns, price changes) are reflected immediately
+    const activeRows = rows.filter(d => d.status !== 'delivered' && d.shopify_id);
+    const liveAmountMap = {};
+
+    if (activeRows.length > 0) {
+      try {
+        const token = await getShopifyToken();
+        // Batch fetch via REST API — one call per order (parallel)
+        await Promise.all(activeRows.map(async (d) => {
+          try {
+            const resp = await axios.get(
+              `https://${SHOPIFY_SHOP}/admin/api/2024-01/orders/${d.shopify_id}.json?fields=id,total_price,current_total_price,total_received,financial_status,tags`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const o = resp.data.order;
+            const currentTotal  = parseFloat(o.current_total_price || o.total_price || 0);
+            const totalReceived = parseFloat(o.total_received || 0);
+            const tags = (o.tags || '').toLowerCase();
+            const isReturn = tags.includes('return');
+            const originalTotal = parseFloat(o.total_price || 0);
+
+            let amount = '0';
+            let amount_type = null;
+
+            if (isReturn) {
+              const refund = Math.max(0, originalTotal - currentTotal);
+              if (refund > 0.001) { amount = refund.toFixed(3); amount_type = 'refund'; }
+            } else {
+              const diff = currentTotal - totalReceived;
+              if (diff > 0.001)       { amount = diff.toFixed(3);          amount_type = 'collect'; }
+              else if (diff < -0.001) { amount = Math.abs(diff).toFixed(3); amount_type = 'refund'; }
+            }
+
+            liveAmountMap[d.shopify_id] = { amount, amount_type };
+          } catch (e) { /* skip this order if Shopify call fails */ }
+        }));
+      } catch (e) { /* non-fatal — fall back to stored amounts */ }
+    }
+
+    // Merge live amounts and transliterate Arabic text
+    const deliveries = rows.map(d => {
+      const live = liveAmountMap[d.shopify_id];
+      return {
+        ...d,
+        amount:      live ? live.amount      : (d.amount || ''),
+        amount_type: live ? live.amount_type : (d.amount_type || null),
+        customer_name: transliterate(d.customer_name || '') || d.customer_name || '',
+        address:       transliterate(d.address       || '') || d.address       || '',
+      };
+    });
+
     res.json({ success: true, deliveries });
   } catch (err) {
     console.error('Deliveries fetch error:', err.message);
