@@ -398,8 +398,8 @@ app.get('/api/deliveries', async (req, res) => {
         await Promise.all(activeRows.map(async (d) => {
           try {
             const resp = await axios.get(
-              `https://${SHOPIFY_SHOP}/admin/api/2024-01/orders/${d.shopify_id}.json?fields=id,total_price,current_total_price,total_received,financial_status,tags`,
-              { headers: { Authorization: `Bearer ${token}` } }
+              `https://${SHOPIFY_SHOP}.myshopify.com/admin/api/2024-01/orders/${d.shopify_id}.json?fields=id,total_price,current_total_price,total_received,financial_status,tags`,
+              { headers: { 'X-Shopify-Access-Token': token } }
             );
             const o = resp.data.order;
             const currentTotal  = parseFloat(o.current_total_price || o.total_price || 0);
