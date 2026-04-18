@@ -334,19 +334,56 @@ app.post('/api/print/packing-slip', async (req, res) => {
 });
 
 // ─── API: PRINT INVOICE (from Zoho Books) ────────────────────────────────────
+// ─── API: DEBUG ZOHO SEARCH ──────────────────────────────────────────────────
+app.post('/api/debug-zoho', async (req, res) => {
+  try {
+    const { orderName } = req.body;
+    const token = await getZohoToken();
+    // Try both formats
+    const withHash    = encodeURIComponent(orderName.startsWith('#') ? orderName : '#' + orderName);
+    const withoutHash = encodeURIComponent(orderName.replace(/^#/, ''));
+    const [r1, r2] = await Promise.all([
+      axios.get(`https://www.zohoapis.com/books/v3/invoices?organization_id=${ZOHO_ORG_ID}&reference_number=${withHash}`, { headers:{ Authorization:`Zoho-oauthtoken ${token}` } }),
+      axios.get(`https://www.zohoapis.com/books/v3/invoices?organization_id=${ZOHO_ORG_ID}&reference_number=${withoutHash}`, { headers:{ Authorization:`Zoho-oauthtoken ${token}` } }),
+    ]);
+    res.json({
+      withHash:    { count: r1.data.invoices?.length, first: r1.data.invoices?.[0] },
+      withoutHash: { count: r2.data.invoices?.length, first: r2.data.invoices?.[0] },
+      rawWithHash:    r1.data,
+      rawWithoutHash: r2.data,
+    });
+  } catch(err) { res.status(500).json({ error: err.response?.data || err.message }); }
+});
+
 app.post('/api/print/invoice', async (req, res) => {
   try {
     const { orderName } = req.body;
 
-    // Find invoice in Zoho Books by Shopify order number (reference_number)
+    // Find invoice in Zoho Books — try with # prefix and without
     const zohoAccessToken = await getZohoToken();
-    const searchRes = await axios.get(
-      `https://www.zohoapis.com/books/v3/invoices?organization_id=${ZOHO_ORG_ID}&reference_number=${encodeURIComponent(orderName)}`,
+    const nameWithHash    = orderName.startsWith('#') ? orderName : '#' + orderName;
+    const nameWithoutHash = orderName.replace(/^#/, '');
+
+    let invoices = [];
+    // First try with hash (e.g. #3817)
+    const r1 = await axios.get(
+      `https://www.zohoapis.com/books/v3/invoices?organization_id=${ZOHO_ORG_ID}&reference_number=${encodeURIComponent(nameWithHash)}`,
       { headers: { Authorization: `Zoho-oauthtoken ${zohoAccessToken}` } }
     );
+    invoices = r1.data.invoices || [];
 
-    const invoices = searchRes.data.invoices;
-    if (!invoices || invoices.length === 0) {
+    // If not found, try without hash (e.g. 3817)
+    if (invoices.length === 0) {
+      const r2 = await axios.get(
+        `https://www.zohoapis.com/books/v3/invoices?organization_id=${ZOHO_ORG_ID}&reference_number=${encodeURIComponent(nameWithoutHash)}`,
+        { headers: { Authorization: `Zoho-oauthtoken ${zohoAccessToken}` } }
+      );
+      invoices = r2.data.invoices || [];
+    }
+
+    console.log(`Invoice search for ${orderName}: found ${invoices.length} result(s)`);
+
+    if (invoices.length === 0) {
       return res.status(404).json({ success: false, error: `No Zoho invoice found for order ${orderName}` });
     }
 
