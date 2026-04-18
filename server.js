@@ -35,6 +35,11 @@ app.get('/driver', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'driver.html'));
 });
 
+// Fulfillment portal route
+app.get('/fulfillment', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'fulfillment.html'));
+});
+
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 const SHOPIFY_SHOP        = process.env.SHOPIFY_SHOP;
 const SHOPIFY_CLIENT_ID   = process.env.SHOPIFY_CLIENT_ID;
@@ -231,30 +236,37 @@ app.get('/api/orders', async (req, res) => {
       };
     }
 
-    // Enrich orders with activity data from print history + deliveries
+    // Enrich orders with activity data from print history + deliveries + fulfillment
     const printHistory = loadHistory();
     let deliveryMap = {};
+    let fulfillmentSet = new Set();
     try {
-      const deliveries = await supabase('GET', '/deliveries?order=created_at.desc&limit=500');
+      const [deliveries, fulfillments] = await Promise.all([
+        supabase('GET', '/deliveries?order=created_at.desc&limit=500'),
+        supabase('GET', '/fulfillment_queue?select=order_name&limit=500'),
+      ]);
       (deliveries || []).forEach(d => { deliveryMap[d.order_name] = d; });
+      (fulfillments || []).forEach(f => { fulfillmentSet.add(f.order_name); });
     } catch (e) { /* non-fatal */ }
 
     const orders = allEdges.map(e => {
       const order = mapOrder(e);
       const ph = printHistory[order.name] || {};
       const delivery = deliveryMap[order.name];
+      const inFulfillment = fulfillmentSet.has(order.name);
 
       // Build activity array: each item = { event, done }
       const activity = [
-        { key: 'label',    label: 'Label',    icon: '🏷️',  done: !!(ph.label   > 0) },
-        { key: 'invoice',  label: 'Invoice',  icon: '🧾',  done: !!(ph.invoice > 0) },
-        { key: 'slip',     label: 'Slip',     icon: '📋',  done: !!(ph.packing > 0) },
-        { key: 'driver',   label: 'Assigned', icon: '🚗',  done: !!delivery },
-        { key: 'pickedup', label: 'Picked Up',icon: '📦',  done: !!(delivery && (delivery.status === 'picked_up' || delivery.status === 'delivered')) },
-        { key: 'delivered',label: 'Delivered',icon: '✅',  done: !!(delivery && delivery.status === 'delivered') },
+        { key: 'label',       label: 'Label',       icon: '🏷️',  done: !!(ph.label   > 0) },
+        { key: 'invoice',     label: 'Invoice',     icon: '🧾',  done: !!(ph.invoice > 0) },
+        { key: 'slip',        label: 'Slip',        icon: '📋',  done: !!(ph.packing > 0) },
+        { key: 'fulfillment', label: 'Packing',     icon: '📦',  done: inFulfillment },
+        { key: 'driver',      label: 'Driver',      icon: '🚗',  done: !!delivery },
+        { key: 'pickedup',    label: 'Picked Up',   icon: '🛵',  done: !!(delivery && (delivery.status === 'picked_up' || delivery.status === 'delivered')) },
+        { key: 'delivered',   label: 'Delivered',   icon: '✅',  done: !!(delivery && delivery.status === 'delivered') },
       ];
 
-      return { ...order, activity, driverStatus: delivery?.status || null };
+      return { ...order, activity, driverStatus: delivery?.status || null, fulfillmentAssigned: inFulfillment };
     });
 
     res.json({ success: true, orders });
@@ -730,6 +742,162 @@ function splitText(text, maxLen) {
   if (current) lines.push(current);
   return lines;
 }
+
+// ─── API: ASSIGN ORDER TO FULFILLMENT ──────────────────────────────────────
+app.post('/api/assign-fulfillment', async (req, res) => {
+  try {
+    const { orderName, shopifyId, orderType } = req.body;
+    if (!orderName) return res.status(400).json({ success: false, error: 'orderName required' });
+
+    // Check if already assigned
+    const existing = await supabase('GET', `/fulfillment_queue?order_name=eq.${encodeURIComponent(orderName)}&limit=1`);
+    if (existing && existing.length > 0) {
+      return res.json({ success: true, alreadyAssigned: true });
+    }
+
+    await supabase('POST', '/fulfillment_queue', {
+      order_name: orderName,
+      shopify_id: shopifyId || '',
+      order_type: orderType || 'ORDER',
+    });
+
+    res.json({ success: true, alreadyAssigned: false });
+  } catch (err) {
+    console.error('Assign fulfillment error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── API: UNASSIGN ORDER FROM FULFILLMENT ──────────────────────────────────
+app.post('/api/unassign-fulfillment', async (req, res) => {
+  try {
+    const { orderName } = req.body;
+    if (!orderName) return res.status(400).json({ success: false, error: 'orderName required' });
+    await supabase('DELETE', `/fulfillment_queue?order_name=eq.${encodeURIComponent(orderName)}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Unassign fulfillment error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── API: GET FULFILLMENT ORDERS ────────────────────────────────────────────
+// Returns assigned orders with their unfulfilled line items, variant images,
+// and warehouse location metafields from Shopify
+app.get('/api/fulfillment-orders', async (req, res) => {
+  try {
+    // 1. Get all assigned orders from fulfillment_queue
+    const queue = await supabase('GET', '/fulfillment_queue?order=created_at.asc&limit=200');
+    if (!queue || queue.length === 0) {
+      return res.json({ success: true, orders: [] });
+    }
+
+    // 2. For each queued order, fetch full details from Shopify
+    const FULFILLMENT_ORDER_FIELDS = `
+      id name createdAt tags
+      lineItems(first: 30) {
+        edges { node {
+          title quantity fulfillableQuantity
+          variant {
+            id title sku
+            selectedOptions { name value }
+            image { url }
+            product {
+              metafield(namespace: "custom", key: "product_storage_location") { value }
+            }
+          }
+        }}
+      }
+    `;
+
+    const orders = await Promise.all(queue.map(async (q) => {
+      try {
+        const gid = q.shopify_id
+          ? `gid://shopify/Order/${q.shopify_id}`
+          : null;
+
+        let shopifyOrder = null;
+
+        if (gid) {
+          const data = await shopifyGQL(`
+            query getOrder($id: ID!) {
+              order(id: $id) { ${FULFILLMENT_ORDER_FIELDS} }
+            }
+          `, { id: gid });
+          shopifyOrder = data.data?.order;
+        }
+
+        if (!shopifyOrder) {
+          // Fallback: search by order name
+          const data = await shopifyGQL(`{
+            orders(first: 1, query: "name:${q.order_name}") {
+              edges { node { ${FULFILLMENT_ORDER_FIELDS} } }
+            }
+          }`);
+          shopifyOrder = data.data?.orders?.edges?.[0]?.node;
+        }
+
+        if (!shopifyOrder) return null;
+
+        const tags = (shopifyOrder.tags || []).map(t => t.toLowerCase());
+        const isExchange = tags.some(t => t.includes('exchange'));
+        const orderType = isExchange ? 'EXCHANGE' : 'ORDER';
+
+        // Only show unfulfilled line items (fulfillableQuantity > 0)
+        const unfulfilledItems = shopifyOrder.lineItems.edges
+          .filter(li => li.node.fulfillableQuantity > 0)
+          .map(li => {
+            const node = li.node;
+            const variant = node.variant || {};
+            const opts = variant.selectedOptions || [];
+
+            // Extract size and color from selectedOptions
+            const sizeOpt = opts.find(o =>
+              o.name.toLowerCase().includes('size') ||
+              o.name.toLowerCase() === 'size'
+            );
+            const colorOpt = opts.find(o =>
+              o.name.toLowerCase().includes('color') ||
+              o.name.toLowerCase().includes('colour')
+            );
+
+            // Variant title (e.g. "M / White") — use as fallback display
+            const variantTitle = variant.title !== 'Default Title' ? variant.title : '';
+
+            return {
+              title: node.title,
+              variantTitle,
+              size: sizeOpt?.value || '',
+              color: colorOpt?.value || '',
+              quantity: node.fulfillableQuantity,
+              imageUrl: variant.image?.url || '',
+              location: variant.product?.metafield?.value || '',
+              sku: variant.sku || '',
+            };
+          });
+
+        if (unfulfilledItems.length === 0) return null; // skip fully fulfilled orders
+
+        return {
+          orderName: shopifyOrder.name,
+          shopifyId: q.shopify_id,
+          orderType,
+          assignedAt: q.created_at,
+          items: unfulfilledItems,
+        };
+      } catch (e) {
+        console.error(`Fulfillment fetch error for ${q.order_name}:`, e.message);
+        return null;
+      }
+    }));
+
+    const validOrders = orders.filter(Boolean);
+    res.json({ success: true, orders: validOrders });
+  } catch (err) {
+    console.error('Fulfillment orders error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 // ─── SERVE FRONTEND ───────────────────────────────────────────────────────────
 app.get('/*path', (req, res) => {

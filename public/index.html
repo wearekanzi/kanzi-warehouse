@@ -791,6 +791,8 @@
   <button class="bulk-btn bulk-btn-all"      onclick="bulkPrint('all')"     id="bulk-btn-all">Print All</button>
   <button class="bulk-btn bulk-btn-driver"   onclick="bulkAssignDriver()"   id="bulk-btn-driver" style="background:#2e7d32;border-color:#2e7d32;">🚗 Assign</button>
   <button class="bulk-btn bulk-btn-unassign" onclick="bulkUnassignDriver()" id="bulk-btn-unassign" style="background:#c0392b;border-color:#c0392b;">✕ Unassign</button>
+  <button class="bulk-btn" onclick="bulkAssignFulfillment()"   id="bulk-btn-fulfillment" style="background:#7b3fa0;border-color:#7b3fa0;">📦 Pack</button>
+  <button class="bulk-btn" onclick="bulkUnassignFulfillment()" id="bulk-btn-unpack"       style="background:#8b4513;border-color:#8b4513;">✕ Unpack</button>
 </div>
 
 <!-- WAREHOUSE SECTION -->
@@ -1220,6 +1222,9 @@
               <button class="btn btn-driver ${order.driverStatus ? 'assigned' : ''}" onclick="assignDriver(${idx})" id="btn-driver-${idx}">
                 <span class="btn-icon">${order.driverStatus ? '✅' : '🚗'}</span>${order.driverStatus ? 'Assigned' : 'Driver'}
               </button>
+              <button class="btn btn-fulfillment ${order.fulfillmentAssigned ? 'assigned' : ''}" onclick="assignFulfillment(${idx})" id="btn-fulfillment-${idx}" style="background:${order.fulfillmentAssigned ? '#7b3fa0' : ''};border-color:${order.fulfillmentAssigned ? '#7b3fa0' : ''};color:${order.fulfillmentAssigned ? '#fff' : ''}">
+                <span class="btn-icon">${order.fulfillmentAssigned ? '✅' : '📦'}</span>${order.fulfillmentAssigned ? 'Packing' : 'Pack'}
+              </button>
               <button class="btn btn-archive"  onclick="archiveOrder(${idx})"     id="btn-archive-${idx}">
                 <span class="btn-icon">📁</span>Archive
               </button>
@@ -1551,6 +1556,161 @@
     btn.disabled = false;
     btn.textContent = '✕ Unassign';
     showToast(`✓ ${done} order(s) removed from driver queue.`, 'info');
+  }
+
+  async function assignFulfillment(idx) {
+    const order = ordersData[idx];
+    const btn = document.getElementById(`btn-fulfillment-${idx}`);
+    const isAssigned = btn.classList.contains('assigned');
+
+    if (isAssigned) {
+      // UNASSIGN
+      if (!confirm(`Remove ${order.name} from the packing queue?`)) return;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="btn-icon">⏳</span>Removing...';
+      try {
+        const res = await fetch('/api/unassign-fulfillment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderName: order.name }),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        showToast(`${order.name} removed from packing queue.`, 'info');
+        btn.classList.remove('assigned');
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+        btn.innerHTML = '<span class="btn-icon">📦</span>Pack';
+        btn.disabled = false;
+        order.fulfillmentAssigned = false;
+      } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<span class="btn-icon">✅</span>Packing';
+      }
+    } else {
+      // ASSIGN
+      btn.disabled = true;
+      btn.innerHTML = '<span class="btn-icon">⏳</span>Sending...';
+      try {
+        const res = await fetch('/api/assign-fulfillment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderName: order.name,
+            shopifyId: order.shopifyId,
+            orderType: order.isExchange ? 'EXCHANGE' : 'ORDER',
+          }),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        if (data.alreadyAssigned) {
+          showToast(`${order.name} is already in the packing queue.`, 'info');
+        } else {
+          showToast(`${order.name} sent to packing! 📦`, 'success');
+        }
+        btn.classList.add('assigned');
+        btn.style.background = '#7b3fa0';
+        btn.style.borderColor = '#7b3fa0';
+        btn.style.color = '#fff';
+        btn.innerHTML = '<span class="btn-icon">✅</span>Packing';
+        btn.disabled = false;
+        order.fulfillmentAssigned = true;
+      } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<span class="btn-icon">📦</span>Pack';
+      }
+    }
+  }
+
+  async function bulkAssignFulfillment() {
+    const indexes = [...selectedIndexes].sort((a, b) => a - b);
+    if (indexes.length === 0) return;
+    const btn = document.getElementById('bulk-btn-fulfillment');
+    btn.disabled = true;
+    btn.textContent = '⏳ Sending...';
+    let done = 0, skipped = 0;
+    for (const idx of indexes) {
+      const order = ordersData[idx];
+      if (order.isReturn) { skipped++; continue; } // returns don't need packing
+      try {
+        const res = await fetch('/api/assign-fulfillment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderName: order.name,
+            shopifyId: order.shopifyId,
+            orderType: order.isExchange ? 'EXCHANGE' : 'ORDER',
+          }),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        if (data.alreadyAssigned) {
+          skipped++;
+        } else {
+          done++;
+          const packBtn = document.getElementById(`btn-fulfillment-${idx}`);
+          if (packBtn) {
+            packBtn.classList.add('assigned');
+            packBtn.style.background = '#7b3fa0';
+            packBtn.style.borderColor = '#7b3fa0';
+            packBtn.style.color = '#fff';
+            packBtn.innerHTML = '<span class="btn-icon">✅</span>Packing';
+          }
+          order.fulfillmentAssigned = true;
+        }
+      } catch (err) {
+        showToast(`❌ ${order.name}: ${err.message}`, 'error');
+        await sleep(1000);
+      }
+    }
+    btn.disabled = false;
+    btn.textContent = '📦 Pack';
+    const parts = [];
+    if (done > 0) parts.push(`${done} sent to packing`);
+    if (skipped > 0) parts.push(`${skipped} skipped`);
+    showToast('✅ ' + parts.join(', '), 'success');
+  }
+
+  async function bulkUnassignFulfillment() {
+    const indexes = [...selectedIndexes].sort((a, b) => a - b);
+    if (indexes.length === 0) return;
+    const names = indexes.map(i => ordersData[i].name).join(', ');
+    if (!confirm(`Remove ${indexes.length} order(s) from packing queue?\n${names}`)) return;
+    const btn = document.getElementById('bulk-btn-unpack');
+    btn.disabled = true;
+    btn.textContent = '⏳ Removing...';
+    let done = 0;
+    for (const idx of indexes) {
+      const order = ordersData[idx];
+      try {
+        const res = await fetch('/api/unassign-fulfillment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderName: order.name }),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        done++;
+        const packBtn = document.getElementById(`btn-fulfillment-${idx}`);
+        if (packBtn) {
+          packBtn.classList.remove('assigned');
+          packBtn.style.background = '';
+          packBtn.style.borderColor = '';
+          packBtn.style.color = '';
+          packBtn.innerHTML = '<span class="btn-icon">📦</span>Pack';
+        }
+        order.fulfillmentAssigned = false;
+      } catch (err) {
+        showToast(`❌ ${order.name}: ${err.message}`, 'error');
+        await sleep(1000);
+      }
+    }
+    btn.disabled = false;
+    btn.textContent = '✕ Unpack';
+    showToast(`✓ ${done} order(s) removed from packing queue.`, 'info');
   }
 
   async function archiveOrder(idx) {

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <title>Kanzi — Packing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:    #000000;
+      --white:    #ffffff;
+      --off-white:#F5F4F0;
+      --gray-100: #f4f4f4;
+      --gray-200: #e8e8e8;
+      --gray-300: #d0d0d0;
+      --gray-400: #a0a0a0;
+      --gray-500: #707070;
+      --gray-600: #505050;
+      --radius:   14px;
+      --radius-sm:8px;
+      --shadow:   0 2px 8px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-lg:0 6px 28px rgba(0,0,0,0.12);
+      --purple:   #7b3fa0;
+      --purple-bg:#f5eefb;
+      --orange:   #c05c00;
+      --orange-bg:#fff3e8;
+    }
+
+    body {
+      font-family: 'Montserrat', -apple-system, sans-serif;
+      background: var(--off-white);
+      color: var(--black);
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--black);
+      color: var(--white);
+      padding: 0 20px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-logo img {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+      filter: invert(1);
+    }
+    .header-title {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+    }
+    .header-sub {
+      font-size: 11px;
+      font-weight: 500;
+      color: #aaa;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .refresh-btn {
+      background: transparent;
+      border: 1.5px solid #444;
+      color: var(--white);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 7px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .refresh-btn:hover { background: #1a1a1a; border-color: #666; }
+    .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── SUMMARY BAR ── */
+    .summary-bar {
+      background: var(--white);
+      border-bottom: 1px solid var(--gray-200);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .summary-chip {
+      background: var(--gray-100);
+      border: 1.5px solid var(--gray-200);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gray-600);
+    }
+    .summary-chip span {
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--black);
+      margin-right: 4px;
+    }
+
+    /* ── MAIN CONTAINER ── */
+    .main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
+
+    /* ── ORDER CARD ── */
+    .order-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+      overflow: hidden;
+      border: 2px solid transparent;
+    }
+    .order-card.exchange-card {
+      border-color: var(--orange);
+    }
+
+    /* Card header — big order number */
+    .card-header {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .order-number {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      color: var(--black);
+      line-height: 1;
+    }
+    .type-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .type-order {
+      background: #e8f4fd;
+      color: #1a4fa0;
+    }
+    .type-exchange {
+      background: var(--orange-bg);
+      color: var(--orange);
+    }
+    .item-count-badge {
+      margin-left: auto;
+      background: var(--gray-100);
+      border: 1px solid var(--gray-200);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gray-500);
+    }
+
+    /* Items list */
+    .items-list {
+      padding: 0;
+    }
+
+    .item-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-100);
+      transition: background 0.1s;
+    }
+    .item-row:last-child {
+      border-bottom: none;
+    }
+    .item-row:hover {
+      background: var(--gray-100);
+    }
+
+    /* Item image */
+    .item-img-wrap {
+      flex-shrink: 0;
+      width: 72px;
+      height: 72px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--gray-100);
+      border: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .item-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .no-image {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gray-400);
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    /* Item info */
+    .item-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .item-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--black);
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+    .item-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .pill-location {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffc107;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+    }
+    .pill-size {
+      background: var(--gray-100);
+      color: var(--gray-600);
+      border: 1px solid var(--gray-200);
+    }
+    .pill-color {
+      background: var(--gray-100);
+      color: var(--gray-600);
+      border: 1px solid var(--gray-200);
+    }
+    .pill-qty {
+      background: var(--black);
+      color: var(--white);
+      border: 1px solid var(--black);
+      font-size: 12px;
+    }
+
+    /* ── STATES ── */
+    .loading-state,
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--gray-400);
+    }
+    .loading-state .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--gray-200);
+      border-top-color: var(--black);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    .empty-state p {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--gray-500);
+    }
+    .empty-state small {
+      display: block;
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--gray-400);
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1a1a1a;
+      color: #fff;
+      padding: 12px 22px;
+      border-radius: 24px;
+      font-size: 13px;
+      font-weight: 700;
+      z-index: 9999;
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      white-space: nowrap;
+      max-width: 90vw;
+      text-align: center;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.success { background: #1a7a4a; }
+    .toast.error   { background: #c0392b; }
+    .toast.info    { background: #1a4fa0; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 480px) {
+      .order-number { font-size: 24px; }
+      .item-img-wrap { width: 60px; height: 60px; }
+      .item-name { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-brand">
+    <div class="header-logo">
+      <img src="https://shopkanzi.com/cdn/shop/files/kanzi_logo.png" alt="Kanzi" onerror="this.style.display='none'" />
+    </div>
+    <div>
+      <div class="header-title">Kanzi</div>
+      <div class="header-sub">Packing</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="refresh-btn" id="refresh-btn" onclick="loadOrders()">↻ Refresh</button>
+  </div>
+</header>
+
+<!-- SUMMARY BAR -->
+<div class="summary-bar">
+  <div class="summary-chip"><span id="count-total">—</span> Orders</div>
+  <div class="summary-chip"><span id="count-items">—</span> Items</div>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="orders-container">
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading orders...</p>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  let ordersData = [];
+
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  function showToast(msg, type = 'info') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.classList.remove('show'); }, 3000);
+  }
+
+  // ── Load orders ────────────────────────────────────────────────────────────
+  async function loadOrders() {
+    const btn = document.getElementById('refresh-btn');
+    btn.disabled = true;
+    btn.textContent = '↻ Loading...';
+    document.getElementById('orders-container').innerHTML =
+      '<div class="loading-state"><div class="spinner"></div><p>Loading orders...</p></div>';
+
+    try {
+      const res = await fetch('/api/fulfillment-orders');
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to load');
+      ordersData = data.orders || [];
+      renderOrders();
+    } catch (err) {
+      document.getElementById('orders-container').innerHTML =
+        `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Failed to load orders</p><small>${err.message}</small></div>`;
+      showToast('❌ ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '↻ Refresh';
+    }
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+  function renderOrders() {
+    const container = document.getElementById('orders-container');
+
+    if (!ordersData || ordersData.length === 0) {
+      document.getElementById('count-total').textContent = '0';
+      document.getElementById('count-items').textContent = '0';
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">✅</div>
+          <p>No orders to pack right now</p>
+          <small>Assigned orders will appear here</small>
+        </div>`;
+      return;
+    }
+
+    // Update summary counts
+    const totalItems = ordersData.reduce((sum, o) =>
+      sum + o.items.reduce((s, i) => s + (i.quantity || 1), 0), 0);
+    document.getElementById('count-total').textContent = ordersData.length;
+    document.getElementById('count-items').textContent = totalItems;
+
+    // Build cards
+    const html = ordersData.map(order => {
+      const isExchange = order.orderType === 'EXCHANGE';
+      const typeClass  = isExchange ? 'type-exchange' : 'type-order';
+      const typeLabel  = isExchange ? 'EXCHANGE' : 'ORDER';
+      const totalItems = order.items.reduce((s, i) => s + (i.quantity || 1), 0);
+
+      const itemsHtml = order.items.map(item => {
+        // Image
+        const imgHtml = item.imageUrl
+          ? `<img src="${escHtml(item.imageUrl)}" alt="${escHtml(item.title)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No<br>Image</div>'" />`
+          : `<div class="no-image">No<br>Image</div>`;
+
+        // Meta pills
+        const locationPill = item.location
+          ? `<span class="meta-pill pill-location">📍 ${escHtml(item.location)}</span>`
+          : '';
+        const sizePill = item.size
+          ? `<span class="meta-pill pill-size">Size: ${escHtml(item.size)}</span>`
+          : '';
+        const colorPill = item.color
+          ? `<span class="meta-pill pill-color">${escHtml(item.color)}</span>`
+          : '';
+        const qtyPill = item.quantity > 1
+          ? `<span class="meta-pill pill-qty">× ${item.quantity}</span>`
+          : '';
+
+        return `
+          <div class="item-row">
+            <div class="item-img-wrap">${imgHtml}</div>
+            <div class="item-info">
+              <div class="item-name">${escHtml(item.title)}</div>
+              <div class="item-meta">
+                ${locationPill}
+                ${sizePill}
+                ${colorPill}
+                ${qtyPill}
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+
+      return `
+        <div class="order-card ${isExchange ? 'exchange-card' : ''}">
+          <div class="card-header">
+            <div class="order-number">${escHtml(order.orderName)}</div>
+            <span class="type-badge ${typeClass}">${typeLabel}</span>
+            <span class="item-count-badge">${totalItems} item${totalItems !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="items-list">
+            ${itemsHtml}
+          </div>
+        </div>`;
+    }).join('');
+
+    container.innerHTML = html;
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // ── Auto-load on page open ─────────────────────────────────────────────────
+  loadOrders();
+
+  // Auto-refresh every 60 seconds
+  setInterval(loadOrders, 60000);
+</script>
+</body>
+</html>
