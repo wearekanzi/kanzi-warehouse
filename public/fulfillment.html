@@ -497,9 +497,9 @@
       const totalItems = order.items.reduce((s, i) => s + (i.quantity || 1), 0);
 
       const itemsHtml = order.items.map(item => {
-        // Image
+        // Image — use data-src for lightbox to avoid quote-escaping issues in onclick
         const imgHtml = item.imageUrl
-          ? `<img src="${escHtml(item.imageUrl)}" alt="${escHtml(item.title)}" loading="lazy" onclick="openLightbox('${escHtml(item.imageUrl)}')" onerror="this.parentElement.innerHTML='<div class=\'no-image\'>No<br>Image</div>'" />`
+          ? `<img src="${escHtml(item.imageUrl)}" alt="${escHtml(item.title)}" loading="lazy" data-lightbox="${escHtml(item.imageUrl)}" class="lightbox-trigger" onerror="this.parentElement.innerHTML='<div class=no-image>No<br>Image</div>'" />`
           : `<div class="no-image">No<br>Image</div>`;
 
         // Meta pills
@@ -548,6 +548,14 @@
   }
 
   // ── Lightbox ───────────────────────────────────────────────────────────────
+  // Use event delegation so dynamically rendered images work
+  document.addEventListener('click', function(e) {
+    const img = e.target.closest('.lightbox-trigger');
+    if (img) {
+      const url = img.getAttribute('data-lightbox');
+      if (url) openLightbox(url);
+    }
+  });
   function openLightbox(url) {
     document.getElementById('lightbox-img').src = url;
     document.getElementById('lightbox').classList.add('open');
