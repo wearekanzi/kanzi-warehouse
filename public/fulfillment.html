@@ -339,6 +339,49 @@
     .toast.error   { background: #c0392b; }
     .toast.info    { background: #1a4fa0; }
 
+    /* ── IMAGE LIGHTBOX ── */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img {
+      max-width: 92vw;
+      max-height: 88vh;
+      border-radius: 12px;
+      object-fit: contain;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+      animation: zoomIn 0.2s ease;
+    }
+    @keyframes zoomIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
+    .lightbox-close {
+      position: absolute;
+      top: 18px;
+      right: 20px;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: white;
+      font-size: 22px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+    .item-img-wrap img { cursor: zoom-in; }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 480px) {
       .order-number { font-size: 24px; }
@@ -381,6 +424,12 @@
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()" />
+</div>
 
 <script>
   let ordersData = [];
@@ -450,7 +499,7 @@
       const itemsHtml = order.items.map(item => {
         // Image
         const imgHtml = item.imageUrl
-          ? `<img src="${escHtml(item.imageUrl)}" alt="${escHtml(item.title)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No<br>Image</div>'" />`
+          ? `<img src="${escHtml(item.imageUrl)}" alt="${escHtml(item.title)}" loading="lazy" onclick="openLightbox('${escHtml(item.imageUrl)}')" onerror="this.parentElement.innerHTML='<div class=\'no-image\'>No<br>Image</div>'" />`
           : `<div class="no-image">No<br>Image</div>`;
 
         // Meta pills
@@ -497,6 +546,20 @@
 
     container.innerHTML = html;
   }
+
+  // ── Lightbox ───────────────────────────────────────────────────────────────
+  function openLightbox(url) {
+    document.getElementById('lightbox-img').src = url;
+    document.getElementById('lightbox').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+    document.getElementById('lightbox-img').src = '';
+    document.body.style.overflow = '';
+  }
+  // Close on Escape key
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   function escHtml(str) {
