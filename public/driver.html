@@ -692,7 +692,7 @@
       const res = await fetch('/api/deliveries/status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status, shopifyId, orderType }),
+        body: JSON.stringify({ id, status, shopifyId, orderType, orderName: o?.order_name }),
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);

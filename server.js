@@ -551,11 +551,10 @@ app.post('/api/deliveries/patch-amount', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
-// ─── API: UPDATE DELIVERY STATUS ─────────────────────────────────────────────
+// ─── API: UPDATE DELIVERY STATUS ───────────────────────────────────────────────────
 app.post('/api/deliveries/status', async (req, res) => {
   try {
-    const { id, status, shopifyId, orderType } = req.body;
+    const { id, status, shopifyId, orderType, orderName } = req.body;
     const now = new Date().toISOString();
     const patch = { status, updated_at: now };
     if (status === 'picked_up') patch.picked_up_at = now;
@@ -563,12 +562,24 @@ app.post('/api/deliveries/status', async (req, res) => {
 
     await supabase('PATCH', `/deliveries?id=eq.${id}`, patch);
 
-    // Auto-fulfill in Shopify when picked up (only for ORDER and EXCHANGE types)
-    if (status === 'picked_up' && shopifyId && orderType !== 'RETURN') {
-      try {
-        await fulfillShopifyOrder(shopifyId);
-      } catch (e) {
-        console.error('Shopify fulfill error:', e.message);
+    // When driver picks up the order:
+    // 1. Auto-fulfill in Shopify (ORDER and EXCHANGE only)
+    // 2. Auto-remove from fulfillment_queue (order is packed and gone)
+    if (status === 'picked_up') {
+      if (shopifyId && orderType !== 'RETURN') {
+        try {
+          await fulfillShopifyOrder(shopifyId);
+        } catch (e) {
+          console.error('Shopify fulfill error:', e.message);
+        }
+      }
+      // Remove from fulfillment queue (non-fatal)
+      if (orderName) {
+        try {
+          await supabase('DELETE', `/fulfillment_queue?order_name=eq.${encodeURIComponent(orderName)}`);
+        } catch (e) {
+          console.error('Fulfillment unassign error:', e.message);
+        }
       }
     }
 
