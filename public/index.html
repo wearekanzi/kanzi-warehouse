@@ -157,14 +157,19 @@
       z-index: 190;
       background: var(--black);
       color: white;
-      padding: 10px 20px;
+      padding: 8px 16px;
       display: none;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
+      flex-direction: column;
+      gap: 8px;
       border-bottom: 1px solid rgba(255,255,255,0.1);
     }
     .bulk-bar.visible { display: flex; }
+    .bulk-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
     .bulk-bar-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; flex: 1; }
     .bulk-btn {
       border: 1px solid rgba(255,255,255,0.2);
@@ -784,15 +789,21 @@
 
 <!-- BULK BAR -->
 <div class="bulk-bar" id="bulk-bar">
-  <span class="bulk-bar-label" id="bulk-label">0 selected</span>
-  <button class="bulk-btn bulk-btn-label"    onclick="bulkPrint('label')"   id="bulk-btn-label">Labels</button>
-  <button class="bulk-btn bulk-btn-invoice"  onclick="bulkPrint('invoice')" id="bulk-btn-invoice">Invoices</button>
-  <button class="bulk-btn bulk-btn-packing"  onclick="bulkPrint('packing')" id="bulk-btn-packing">Slips</button>
-  <button class="bulk-btn bulk-btn-all"      onclick="bulkPrint('all')"     id="bulk-btn-all">Print All</button>
-  <button class="bulk-btn bulk-btn-driver"   onclick="bulkAssignDriver()"   id="bulk-btn-driver" style="background:#2e7d32;border-color:#2e7d32;">🚗 Assign</button>
-  <button class="bulk-btn bulk-btn-unassign" onclick="bulkUnassignDriver()" id="bulk-btn-unassign" style="background:#c0392b;border-color:#c0392b;">✕ Unassign</button>
-  <button class="bulk-btn" onclick="bulkAssignFulfillment()"   id="bulk-btn-fulfillment" style="background:#7b3fa0;border-color:#7b3fa0;">📦 Pack</button>
-  <button class="bulk-btn" onclick="bulkUnassignFulfillment()" id="bulk-btn-unpack"       style="background:#8b4513;border-color:#8b4513;">✕ Unpack</button>
+  <div class="bulk-bar-row">
+    <span class="bulk-bar-label" id="bulk-label">0 selected</span>
+    <button class="bulk-btn bulk-btn-label"    onclick="bulkPrint('label')"   id="bulk-btn-label">Labels</button>
+    <button class="bulk-btn bulk-btn-invoice"  onclick="bulkPrint('invoice')" id="bulk-btn-invoice">Invoices</button>
+    <button class="bulk-btn bulk-btn-packing"  onclick="bulkPrint('packing')" id="bulk-btn-packing">Slips</button>
+    <button class="bulk-btn bulk-btn-all"      onclick="bulkPrint('all')"     id="bulk-btn-all">Print All</button>
+  </div>
+  <div class="bulk-bar-row">
+    <span style="font-size:10px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;">Driver</span>
+    <button class="bulk-btn bulk-btn-driver"   onclick="bulkAssignDriver()"   id="bulk-btn-driver" style="background:#2e7d32;border-color:#2e7d32;">🚗 Assign Driver</button>
+    <button class="bulk-btn bulk-btn-unassign" onclick="bulkUnassignDriver()" id="bulk-btn-unassign" style="background:#c0392b;border-color:#c0392b;">✕ Unassign Driver</button>
+    <span style="font-size:10px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-left:8px;">Packing</span>
+    <button class="bulk-btn" onclick="bulkAssignFulfillment()"   id="bulk-btn-fulfillment" style="background:#7b3fa0;border-color:#7b3fa0;">📦 Assign Pack</button>
+    <button class="bulk-btn" onclick="bulkUnassignFulfillment()" id="bulk-btn-unpack"       style="background:#8b4513;border-color:#8b4513;">✕ Unassign Pack</button>
+  </div>
 </div>
 
 <!-- WAREHOUSE SECTION -->
