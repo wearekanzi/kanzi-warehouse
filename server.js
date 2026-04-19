@@ -470,20 +470,24 @@ app.get('/api/deliveries', async (req, res) => {
 
     if (activeRows.length > 0) {
       try {
-        const token = await getShopifyToken();
-        // Batch fetch via REST API — one call per order (parallel)
+        // Use GraphQL to get accurate totalReceivedSet (REST API doesn't return it correctly for returns)
         await Promise.all(activeRows.map(async (d) => {
           try {
-            const resp = await axios.get(
-              `https://${SHOPIFY_SHOP}.myshopify.com/admin/api/2024-01/orders/${d.shopify_id}.json?fields=id,total_price,current_total_price,total_received,financial_status,tags`,
-              { headers: { 'X-Shopify-Access-Token': token } }
-            );
-            const o = resp.data.order;
-            const currentTotal  = parseFloat(o.current_total_price || o.total_price || 0);
-            const totalReceived = parseFloat(o.total_received || 0);
-            const tags = (o.tags || '').toLowerCase();
-            const isReturn = tags.includes('return');
-            const originalTotal = parseFloat(o.total_price || 0);
+            const gid = `gid://shopify/Order/${d.shopify_id}`;
+            const result = await shopifyGQL(`{
+              order(id: "${gid}") {
+                tags
+                totalPriceSet { shopMoney { amount } }
+                currentTotalPriceSet { shopMoney { amount } }
+                totalReceivedSet { shopMoney { amount } }
+              }
+            }`);
+            const o = result.data?.order;
+            if (!o) return;
+            const currentTotal  = parseFloat(o.currentTotalPriceSet?.shopMoney?.amount || o.totalPriceSet.shopMoney.amount);
+            const totalReceived = parseFloat(o.totalReceivedSet?.shopMoney?.amount || 0);
+            const tags = (o.tags || []).map(t => t.toLowerCase());
+            const isReturn = tags.some(t => t.includes('return'));
 
             let amount = '0';
             let amount_type = null;
