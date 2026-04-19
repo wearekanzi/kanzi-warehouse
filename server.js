@@ -140,6 +140,33 @@ const ORDER_FIELDS = `
   tags
 `;
 
+// ─── DEBUG: INSPECT ORDER AMOUNTS ──────────────────────────────────────────
+app.get('/api/debug-order/:name', async (req, res) => {
+  try {
+    const name = '#' + req.params.name.replace(/^#/, '');
+    const data = await shopifyGQL(`{ orders(first: 1, query: "name:${name}") { edges { node {
+      name tags
+      totalPriceSet { shopMoney { amount } }
+      currentTotalPriceSet { shopMoney { amount } }
+      totalReceivedSet { shopMoney { amount } }
+      totalOutstandingSet { shopMoney { amount } }
+    } } } }`);
+    const node = data.data?.orders?.edges?.[0]?.node;
+    if (!node) return res.status(404).json({ error: 'Order not found' });
+    const orig    = parseFloat(node.totalPriceSet.shopMoney.amount);
+    const current = parseFloat(node.currentTotalPriceSet?.shopMoney?.amount || orig);
+    const received= parseFloat(node.totalReceivedSet?.shopMoney?.amount || 0);
+    const outstanding = parseFloat(node.totalOutstandingSet?.shopMoney?.amount || 0);
+    const isReturn = (node.tags || []).map(t=>t.toLowerCase()).includes('return');
+    res.json({
+      name: node.name, tags: node.tags, isReturn,
+      originalTotal: orig, currentTotal: current, totalReceived: received, totalOutstanding: outstanding,
+      calculatedRefund_oldFormula: Math.max(0, orig - current),
+      calculatedRefund_newFormula: Math.max(0, received - current),
+    });
+  } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/api/orders', async (req, res) => {
   try {
     // Run two queries in parallel:
