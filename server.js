@@ -219,12 +219,13 @@ app.get('/api/orders', async (req, res) => {
       const totalReceived = parseFloat(o.totalReceivedSet?.shopMoney?.amount || 0);
       const originalTotal = parseFloat(o.totalPriceSet.shopMoney.amount);
 
-      // For return orders: refund = original total - current total (item returned, partial refund)
+      // For return orders: refund = totalReceived - currentTotal
+      // (what the customer actually paid minus what the order is now worth after the return)
       // For exchange/regular: use totalReceived vs currentTotal
       let outstanding = 0;
       let refund = 0;
       if (isReturn) {
-        refund = Math.max(0, originalTotal - currentTotal);
+        refund = Math.max(0, totalReceived - currentTotal);
       } else {
         const diff = currentTotal - totalReceived;
         if (diff > 0.001) {
@@ -488,7 +489,7 @@ app.get('/api/deliveries', async (req, res) => {
             let amount_type = null;
 
             if (isReturn) {
-              const refund = Math.max(0, originalTotal - currentTotal);
+              const refund = Math.max(0, totalReceived - currentTotal);
               if (refund > 0.001) { amount = refund.toFixed(3); amount_type = 'refund'; }
             } else {
               const diff = currentTotal - totalReceived;
