@@ -979,6 +979,31 @@ app.get('/api/fulfillment-orders', async (req, res) => {
   }
 });
 
+// ─── RELAY HEALTH MONITOR ────────────────────────────────────────────────────
+let relayStatus = { online: null, lastChecked: null, lastOnline: null };
+
+async function checkRelayHealth() {
+  try {
+    const resp = await axios.get(`${RELAY_URL}/health`, { timeout: 8000 });
+    const wasOffline = relayStatus.online === false;
+    relayStatus = { online: true, lastChecked: new Date().toISOString(), lastOnline: new Date().toISOString() };
+    if (wasOffline) console.log('[relay-monitor] Relay is back ONLINE');
+  } catch (e) {
+    const wasOnline = relayStatus.online !== false;
+    relayStatus = { ...relayStatus, online: false, lastChecked: new Date().toISOString() };
+    if (wasOnline) console.warn('[relay-monitor] Relay went OFFLINE:', e.message);
+  }
+}
+
+// Check relay health every 2 minutes
+setInterval(checkRelayHealth, 2 * 60 * 1000);
+checkRelayHealth(); // run immediately on startup
+
+// Public endpoint so the owner portal can show printer status
+app.get('/api/relay-status', (req, res) => {
+  res.json(relayStatus);
+});
+
 // ─── SERVE FRONTEND ───────────────────────────────────────────────────────────
 app.get('/*path', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

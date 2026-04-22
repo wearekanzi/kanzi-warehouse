@@ -772,7 +772,11 @@
       <div class="header-subtitle">Warehouse</div>
     </div>
   </div>
-  <div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div id="printer-status" title="Printer connection status" style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;letter-spacing:1px;color:#aaa;cursor:default;">
+      <span id="printer-dot" style="width:8px;height:8px;border-radius:50%;background:#555;flex-shrink:0;"></span>
+      <span id="printer-label">PRINTERS</span>
+    </div>
     <button class="refresh-btn" id="refresh-btn" onclick="refreshCurrent()">↻ Refresh</button>
   </div>
 </header>
@@ -1766,9 +1770,34 @@
     toast._timer = setTimeout(() => { toast.className = 'toast'; }, 3500);
   }
 
+  // ── Printer / Relay status indicator ──
+  async function loadRelayStatus() {
+    try {
+      const res = await fetch('/api/relay-status');
+      const data = await res.json();
+      const dot   = document.getElementById('printer-dot');
+      const label = document.getElementById('printer-label');
+      if (data.online === true) {
+        dot.style.background   = '#22c55e'; // green
+        label.style.color      = '#22c55e';
+        label.textContent      = 'PRINTERS ONLINE';
+      } else if (data.online === false) {
+        dot.style.background   = '#ef4444'; // red
+        label.style.color      = '#ef4444';
+        label.textContent      = 'PRINTERS OFFLINE';
+      } else {
+        dot.style.background   = '#555';
+        label.style.color      = '#aaa';
+        label.textContent      = 'PRINTERS';
+      }
+    } catch (e) { /* silent */ }
+  }
+
   // Init
   loadOrders();
+  loadRelayStatus();
   setInterval(() => { if (currentTab === 'warehouse') loadOrders(); }, 60000);
+  setInterval(loadRelayStatus, 2 * 60 * 1000); // refresh printer status every 2 min
 </script>
 </body>
 </html>
