@@ -465,7 +465,8 @@ app.get('/api/deliveries', async (req, res) => {
 
     // For active (non-delivered) orders, fetch live amounts from Shopify
     // so any edits to the order (returns, price changes) are reflected immediately
-    const activeRows = rows.filter(d => d.status !== 'delivered' && d.shopify_id);
+    // Skip orders with manual_override=true (amount was manually set by owner)
+    const activeRows = rows.filter(d => d.status !== 'delivered' && d.shopify_id && !d.manual_override);
     const liveAmountMap = {};
 
     if (activeRows.length > 0) {
@@ -618,7 +619,8 @@ app.post('/api/deliveries/patch-amount', async (req, res) => {
   try {
     const { orderName, amount, amount_type } = req.body;
     if (!orderName) return res.status(400).json({ success: false, error: 'orderName required' });
-    await supabase('PATCH', `/deliveries?order_name=eq.${encodeURIComponent(orderName)}`, { amount, amount_type });
+    // Set manual_override=true so the live Shopify lookup doesn't overwrite this value
+    await supabase('PATCH', `/deliveries?order_name=eq.${encodeURIComponent(orderName)}`, { amount, amount_type, manual_override: true });
     res.json({ success: true });
   } catch (err) {
     console.error('Patch amount error:', err.message);
