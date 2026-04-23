@@ -564,13 +564,11 @@
     const isRefund  = o.amount_type === 'refund';
     let amountBanner = '';
     if (isTryOn) {
-      const approxAmount = o.amount && parseFloat(o.amount) > 0 ? parseFloat(o.amount).toFixed(3) + ' KWD' : '';
       amountBanner = `
         <div class="amount-banner try-on">
           <div style="flex:1;">
             <div class="amount-banner-label">🧪 TRY-ON ORDER</div>
-            <div class="amount-banner-note">Amount to collect will be determined after the customer tries the items. Wait for the customer.</div>
-            ${approxAmount ? `<div class="amount-banner-value">Max: ${approxAmount}</div>` : ''}
+            <div class="amount-banner-note">Amount to collect will be sent after the customer tries the items. Wait for the customer.</div>
           </div>
           <div class="amount-banner-icon" style="margin-left:12px;">⏳</div>
         </div>`;
