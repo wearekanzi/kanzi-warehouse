@@ -241,6 +241,19 @@
       background: var(--red-light);
       border: 1px solid var(--red-border);
     }
+    .amount-banner.try-on {
+      background: #fff8e1;
+      border: 1px solid #f59e0b;
+    }
+    .try-on .amount-banner-label { color: #b45309; }
+    .try-on .amount-banner-note {
+      font-size: 12px;
+      font-weight: 500;
+      color: #92400e;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+    .try-on .amount-banner-value { color: #b45309; font-size: 14px; font-weight: 700; margin-top: 2px; }
     .amount-banner-label {
       font-size: 11px;
       font-weight: 700;
@@ -546,10 +559,22 @@
     const slClass  = 'sl-'  + o.status;
 
     // Amount banner
-    const hasAmount = o.amount && parseFloat(o.amount) > 0 && o.amount_type;
+    const isTryOn   = o.amount_type === 'try-on';
+    const hasAmount = o.amount && parseFloat(o.amount) > 0 && o.amount_type && !isTryOn;
     const isRefund  = o.amount_type === 'refund';
     let amountBanner = '';
-    if (hasAmount) {
+    if (isTryOn) {
+      const approxAmount = o.amount && parseFloat(o.amount) > 0 ? parseFloat(o.amount).toFixed(3) + ' KWD' : '';
+      amountBanner = `
+        <div class="amount-banner try-on">
+          <div style="flex:1;">
+            <div class="amount-banner-label">🧪 TRY-ON ORDER</div>
+            <div class="amount-banner-note">Amount to collect will be determined after the customer tries the items. Wait for the customer.</div>
+            ${approxAmount ? `<div class="amount-banner-value">Max: ${approxAmount}</div>` : ''}
+          </div>
+          <div class="amount-banner-icon" style="margin-left:12px;">⏳</div>
+        </div>`;
+    } else if (hasAmount) {
       const bannerClass = isRefund ? 'refund' : 'collect';
       const icon  = isRefund ? '↩' : '💵';
       const label = isRefund ? 'Give Back to Customer' : 'Collect from Customer';

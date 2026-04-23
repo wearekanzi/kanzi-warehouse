@@ -487,12 +487,17 @@ app.get('/api/deliveries', async (req, res) => {
             const currentTotal  = parseFloat(o.currentTotalPriceSet?.shopMoney?.amount || o.totalPriceSet.shopMoney.amount);
             const totalReceived = parseFloat(o.totalReceivedSet?.shopMoney?.amount || 0);
             const tags = (o.tags || []).map(t => t.toLowerCase());
-            const isReturn = tags.some(t => t.includes('return'));
+            const isReturn  = tags.some(t => t.includes('return'));
+            const isTryOn   = tags.some(t => t === 'try-on' || t === 'tryon' || t === 'try on');
 
             let amount = '0';
             let amount_type = null;
 
-            if (isReturn) {
+            if (isTryOn) {
+              // Try-on orders: don't show a fixed amount — driver waits for customer
+              amount = o.totalPriceSet?.shopMoney?.amount || '0';
+              amount_type = 'try-on';
+            } else if (isReturn) {
               const refund = Math.max(0, totalReceived - currentTotal);
               if (refund > 0.001) { amount = refund.toFixed(3); amount_type = 'refund'; }
             } else {
