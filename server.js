@@ -56,7 +56,7 @@ const SUPABASE_URL        = process.env.SUPABASE_URL;
 const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
 
 const KANZI_APP_DELIVERED_WEBHOOK_URL = 'https://fashionapp-cl79nzz9.manus.space/api/webhooks/orders/delivered';
-const WAREHOUSE_SECRET = process.env.WAREHOUSE_SECRET || process.env.KANZI_WAREHOUSE_SECRET || process.env.KANZI_APP_WAREHOUSE_SECRET;
+const WAREHOUSE_WEBHOOK_SECRET = process.env.WAREHOUSE_WEBHOOK_SECRET;
 
 // ─── TOKEN CACHE ─────────────────────────────────────────────────────────────
 let shopifyToken = { value: null, expiresAt: 0 };
@@ -65,8 +65,8 @@ let zohoToken    = { value: null, expiresAt: 0 };
 async function notifyKanziOrderDelivered(orderName) {
   if (!orderName) return;
 
-  if (!WAREHOUSE_SECRET) {
-    console.error('Kanzi delivered webhook skipped: WAREHOUSE_SECRET is not configured');
+  if (!WAREHOUSE_WEBHOOK_SECRET) {
+    console.error('Kanzi delivered webhook skipped: WAREHOUSE_WEBHOOK_SECRET is not configured');
     return;
   }
 
@@ -74,7 +74,7 @@ async function notifyKanziOrderDelivered(orderName) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-warehouse-secret': WAREHOUSE_SECRET,
+      'x-warehouse-secret': WAREHOUSE_WEBHOOK_SECRET,
     },
     body: JSON.stringify({ orderName }),
   });
