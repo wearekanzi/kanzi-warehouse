@@ -55,9 +55,35 @@ const RELAY_URL           = process.env.RELAY_URL; // Mac Mini relay URL
 const SUPABASE_URL        = process.env.SUPABASE_URL;
 const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
 
+const KANZI_APP_DELIVERED_WEBHOOK_URL = 'https://fashionapp-cl79nzz9.manus.space/api/webhooks/orders/delivered';
+const WAREHOUSE_SECRET = process.env.WAREHOUSE_SECRET || process.env.KANZI_WAREHOUSE_SECRET || process.env.KANZI_APP_WAREHOUSE_SECRET;
+
 // ─── TOKEN CACHE ─────────────────────────────────────────────────────────────
 let shopifyToken = { value: null, expiresAt: 0 };
 let zohoToken    = { value: null, expiresAt: 0 };
+
+async function notifyKanziOrderDelivered(orderName) {
+  if (!orderName) return;
+
+  if (!WAREHOUSE_SECRET) {
+    console.error('Kanzi delivered webhook skipped: WAREHOUSE_SECRET is not configured');
+    return;
+  }
+
+  const res = await fetch(KANZI_APP_DELIVERED_WEBHOOK_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-warehouse-secret': WAREHOUSE_SECRET,
+    },
+    body: JSON.stringify({ orderName }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Kanzi delivered webhook failed: ${res.status} ${body}`.trim());
+  }
+}
 
 async function getShopifyToken() {
   if (shopifyToken.value && Date.now() < shopifyToken.expiresAt - 60000) {
@@ -637,6 +663,14 @@ app.post('/api/deliveries/status', async (req, res) => {
     if (status === 'delivered') patch.delivered_at = now;
 
     await supabase('PATCH', `/deliveries?id=eq.${id}`, patch);
+
+    if (status === 'delivered') {
+      try {
+        await notifyKanziOrderDelivered(orderName);
+      } catch (e) {
+        console.error('Kanzi delivered webhook error:', e.message);
+      }
+    }
 
     // When driver picks up the order:
     // 1. Auto-fulfill in Shopify (ORDER and EXCHANGE only)
