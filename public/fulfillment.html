@@ -574,7 +574,7 @@
             ${itemsHtml}
           </div>
           <div class="card-footer">
-            <button class="pickup-btn" id="pickup-btn-${escHtml(order.orderName)}" onclick="markPickedUp('${escHtml(order.orderName)}', '${escHtml(order.shopifyId || '')}')">
+            <button class="pickup-btn" id="pickup-btn-${escHtml(order.orderName)}" onclick="markPickedUp('${escHtml(order.orderName)}', '${escHtml(order.shopifyId || '')}', '${escHtml(order.orderType || 'ORDER')}')">
               ✅ Picked Up
             </button>
           </div>
@@ -607,7 +607,7 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 
   // ── Mark Picked Up ──────────────────────────────────────────────────────────
-  async function markPickedUp(orderName, shopifyId) {
+  async function markPickedUp(orderName, shopifyId, orderType) {
     const btn = document.getElementById('pickup-btn-' + orderName);
     if (!btn || btn.disabled) return;
     btn.disabled = true;
@@ -617,7 +617,7 @@
       const res = await fetch('/api/unassign-fulfillment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderName })
+        body: JSON.stringify({ orderName, shopifyId, orderType, fulfill: true })
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'Failed');
