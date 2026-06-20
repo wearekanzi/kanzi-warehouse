@@ -382,6 +382,38 @@
     }
     .item-img-wrap img { cursor: zoom-in; }
 
+    /* ── PICKED UP BUTTON ── */
+    .card-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--gray-200);
+      background: var(--gray-100);
+    }
+    .pickup-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--black);
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .pickup-btn:hover  { background: #222; }
+    .pickup-btn:active { transform: scale(0.98); }
+    .pickup-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .pickup-btn.done {
+      background: #1a7a4a;
+      cursor: default;
+    }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 480px) {
       .order-number { font-size: 24px; }
@@ -532,7 +564,7 @@
       }).join('');
 
       return `
-        <div class="order-card ${isExchange ? 'exchange-card' : ''}">
+        <div class="order-card ${isExchange ? 'exchange-card' : ''}" id="card-${escHtml(order.orderName)}">
           <div class="card-header">
             <div class="order-number">${escHtml(order.orderName)}</div>
             <span class="type-badge ${typeClass}">${typeLabel}</span>
@@ -540,6 +572,11 @@
           </div>
           <div class="items-list">
             ${itemsHtml}
+          </div>
+          <div class="card-footer">
+            <button class="pickup-btn" id="pickup-btn-${escHtml(order.orderName)}" onclick="markPickedUp('${escHtml(order.orderName)}', '${escHtml(order.shopifyId || '')}')">
+              ✅ Picked Up
+            </button>
           </div>
         </div>`;
     }).join('');
@@ -568,6 +605,46 @@
   }
   // Close on Escape key
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+  // ── Mark Picked Up ──────────────────────────────────────────────────────────
+  async function markPickedUp(orderName, shopifyId) {
+    const btn = document.getElementById('pickup-btn-' + orderName);
+    if (!btn || btn.disabled) return;
+    btn.disabled = true;
+    btn.textContent = '⏳ Marking...';
+
+    try {
+      const res = await fetch('/api/unassign-fulfillment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderName })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed');
+
+      // Show done state then fade out the card
+      btn.classList.add('done');
+      btn.textContent = '✅ Picked Up — Done';
+      showToast('✅ ' + orderName + ' marked as picked up', 'success');
+
+      setTimeout(() => {
+        const card = document.getElementById('card-' + orderName);
+        if (card) {
+          card.style.transition = 'opacity 0.4s, transform 0.4s';
+          card.style.opacity = '0';
+          card.style.transform = 'translateY(-8px)';
+          setTimeout(() => {
+            ordersData = ordersData.filter(o => o.orderName !== orderName);
+            renderOrders();
+          }, 400);
+        }
+      }, 800);
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = '✅ Picked Up';
+      showToast('❌ ' + err.message, 'error');
+    }
+  }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   function escHtml(str) {
