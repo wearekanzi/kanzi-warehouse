@@ -858,9 +858,21 @@ app.post('/api/assign-fulfillment', async (req, res) => {
 // ─── API: UNASSIGN ORDER FROM FULFILLMENT ──────────────────────────────────
 app.post('/api/unassign-fulfillment', async (req, res) => {
   try {
-    const { orderName } = req.body;
+    const { orderName, shopifyId, orderType, fulfill } = req.body;
     if (!orderName) return res.status(400).json({ success: false, error: 'orderName required' });
     await supabase('DELETE', `/fulfillment_queue?order_name=eq.${encodeURIComponent(orderName)}`);
+
+    // If called from "Picked Up" in fulfillment portal, also fulfill in Shopify (ORDER and EXCHANGE only)
+    if (fulfill && shopifyId && orderType !== 'RETURN') {
+      try {
+        await fulfillShopifyOrder(shopifyId);
+        console.log(`[fulfillment] Fulfilled Shopify order ${orderName} (${shopifyId})`);
+      } catch (e) {
+        console.error(`[fulfillment] Shopify fulfill error for ${orderName}:`, e.message);
+        // Non-fatal — queue removal already succeeded
+      }
+    }
+
     res.json({ success: true });
   } catch (err) {
     console.error('Unassign fulfillment error:', err.message);
